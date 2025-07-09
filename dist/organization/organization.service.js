@@ -17,10 +17,16 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const organization_entity_1 = require("./entities/organization.entity");
+const organizationUser_entity_1 = require("./entities/organizationUser.entity");
+const user_entity_1 = require("../users/entities/user.entity");
 let OrganizationService = class OrganizationService {
     organizationRepository;
-    constructor(organizationRepository) {
+    organizationUserRepository;
+    userRepository;
+    constructor(organizationRepository, organizationUserRepository, userRepository) {
         this.organizationRepository = organizationRepository;
+        this.organizationUserRepository = organizationUserRepository;
+        this.userRepository = userRepository;
     }
     create(createOrganizationDto) {
         const organization = this.organizationRepository.create(createOrganizationDto);
@@ -50,11 +56,28 @@ let OrganizationService = class OrganizationService {
         const organization = await this.findOne(id);
         return this.organizationRepository.remove(organization);
     }
+    async assignUserToOrganization(orgId, userId) {
+        const organization = await this.organizationRepository.findOneBy({ id: orgId });
+        if (!organization)
+            throw new common_1.NotFoundException('Organization not found');
+        const user = await this.userRepository.findOneBy({ id: userId });
+        if (!user)
+            throw new common_1.NotFoundException('User not found');
+        const existing = await this.organizationUserRepository.findOne({ where: { organization: { id: orgId }, user: { id: userId } } });
+        if (existing)
+            throw new common_1.BadRequestException('User already assigned to this organization');
+        const orgUser = this.organizationUserRepository.create({ organization, user });
+        return this.organizationUserRepository.save(orgUser);
+    }
 };
 exports.OrganizationService = OrganizationService;
 exports.OrganizationService = OrganizationService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(organization_entity_1.Organization)),
-    __metadata("design:paramtypes", [typeorm_2.Repository])
+    __param(1, (0, typeorm_1.InjectRepository)(organizationUser_entity_1.OrganizationUser)),
+    __param(2, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
+    __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
+        typeorm_2.Repository])
 ], OrganizationService);
 //# sourceMappingURL=organization.service.js.map
