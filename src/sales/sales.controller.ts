@@ -1,7 +1,70 @@
-import { Controller } from '@nestjs/common';
+import { 
+  Controller, 
+  Get, 
+  Post, 
+  Body, 
+  Patch, 
+  Param, 
+  Delete, 
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { SalesService } from './sales.service';
+import { CreateSaleDto } from './dto/create-sale.dto';
+import { UpdateSaleDto } from './dto/update-sale.dto';
 
 @Controller('sales')
 export class SalesController {
   constructor(private readonly salesService: SalesService) {}
+
+  @Post()
+  create(@Body() createSaleDto: CreateSaleDto) {
+    return this.salesService.create(createSaleDto);
+  }
+
+  @Get()
+  findAll() {
+    return this.salesService.findAll();
+  }
+
+  @Get('summary')
+  getSalesSummary(
+    @Query('businessId') businessId?: string,
+    @Query('venueId') venueId?: string,
+  ) {
+    return this.salesService.getSalesSummary(
+      businessId ? parseInt(businessId) : undefined,
+      venueId ? parseInt(venueId) : undefined,
+    );
+  }
+
+  @Get('business/:businessId')
+  findByBusiness(@Param('businessId') businessId: string) {
+    return this.salesService.findByBusiness(+businessId);
+  }
+
+  @Get('venue/:venueId')
+  findByVenue(@Param('venueId') venueId: string) {
+    return this.salesService.findByVenue(+venueId);
+  }
+
+  @Get('user/:userId')
+  findByUser(@Param('userId') userId: string) {
+    return this.salesService.findByUser(+userId);
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.salesService.findOne(+id);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateSaleDto: UpdateSaleDto) {
+    return this.salesService.update(+id, updateSaleDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.salesService.remove(+id);
+  }
 }

@@ -13,11 +13,22 @@ exports.Business = void 0;
 const organization_entity_1 = require("../../organization/entities/organization.entity");
 const staff_member_entity_1 = require("../../staff-member/entities/staff-member.entity");
 const venue_entity_1 = require("../../venue/entities/venue.entity");
+const user_entity_1 = require("../../users/entities/user.entity");
 const typeorm_1 = require("typeorm");
 let Business = class Business {
     id;
     name;
+    description;
+    address;
+    phone;
+    email;
+    website;
+    taxId;
+    isActive;
+    createdAt;
+    updatedAt;
     organization;
+    createdBy;
     staffMembers;
     venues;
 };
@@ -31,9 +42,49 @@ __decorate([
     __metadata("design:type", String)
 ], Business.prototype, "name", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Business.prototype, "description", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Business.prototype, "address", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Business.prototype, "phone", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Business.prototype, "email", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Business.prototype, "website", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Business.prototype, "taxId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: true }),
+    __metadata("design:type", Boolean)
+], Business.prototype, "isActive", void 0);
+__decorate([
+    (0, typeorm_1.CreateDateColumn)(),
+    __metadata("design:type", Date)
+], Business.prototype, "createdAt", void 0);
+__decorate([
+    (0, typeorm_1.UpdateDateColumn)(),
+    __metadata("design:type", Date)
+], Business.prototype, "updatedAt", void 0);
+__decorate([
     (0, typeorm_1.ManyToOne)(() => organization_entity_1.Organization, (org) => org.businesses),
     __metadata("design:type", organization_entity_1.Organization)
 ], Business.prototype, "organization", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { nullable: true }),
+    __metadata("design:type", user_entity_1.User)
+], Business.prototype, "createdBy", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => staff_member_entity_1.StaffMember, (staff) => staff.business),
     __metadata("design:type", Array)

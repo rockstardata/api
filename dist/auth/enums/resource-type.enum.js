@@ -5,5 +5,6 @@ var ResourceType;
 (function (ResourceType) {
     ResourceType["Organization"] = "organization";
     ResourceType["Venue"] = "venue";
+    ResourceType["Business"] = "business";
 })(ResourceType || (exports.ResourceType = ResourceType = {}));
 //# sourceMappingURL=resource-type.enum.js.map

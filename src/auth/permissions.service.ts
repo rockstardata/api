@@ -7,10 +7,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Organization } from 'src/organization/entities/organization.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Venue } from 'src/venue/entities/venue.entity';
+import { Business } from 'src/business/entities/business.entity';
 import { Repository } from 'typeorm';
 import { AssignPermissionDto } from './dto/assign-permission.dto';
 import { UserPermission } from './entities/user-permission.entity';
 import { ResourceType } from './enums/resource-type.enum';
+import { PermissionType } from './enums/permission-type.enum';
 
 @Injectable()
 export class PermissionsService {
@@ -23,6 +25,8 @@ export class PermissionsService {
     private readonly organizationRepository: Repository<Organization>,
     @InjectRepository(Venue)
     private readonly venueRepository: Repository<Venue>,
+    @InjectRepository(Business)
+    private readonly businessRepository: Repository<Business>,
   ) {}
 
   async assign(assignPermissionDto: AssignPermissionDto) {
@@ -44,6 +48,10 @@ export class PermissionsService {
       const venue = await this.venueRepository.findOneBy({ id: resourceId });
       if (!venue)
         throw new NotFoundException(`Venue with ID ${resourceId} not found`);
+    } else if (resourceType === ResourceType.Business) {
+      const business = await this.businessRepository.findOneBy({ id: resourceId });
+      if (!business)
+        throw new NotFoundException(`Business with ID ${resourceId} not found`);
     }
 
     const existingPermission = await this.permissionRepository.findOneBy({
@@ -63,5 +71,87 @@ export class PermissionsService {
       user: { id: userId },
     });
     return this.permissionRepository.save(permission);
+  }
+
+  async assignSalesPermissionToOrganization(
+    userId: number,
+    organizationId: number,
+    permissionType: PermissionType = PermissionType.ViewSales,
+  ) {
+    return this.assign({
+      userId,
+      resourceId: organizationId,
+      resourceType: ResourceType.Organization,
+      permissionType,
+    });
+  }
+
+  async assignSalesPermissionToBusiness(
+    userId: number,
+    businessId: number,
+    permissionType: PermissionType = PermissionType.ViewSales,
+  ) {
+    return this.assign({
+      userId,
+      resourceId: businessId,
+      resourceType: ResourceType.Business,
+      permissionType,
+    });
+  }
+
+  async assignSalesPermissionToVenue(
+    userId: number,
+    venueId: number,
+    permissionType: PermissionType = PermissionType.ViewSales,
+  ) {
+    return this.assign({
+      userId,
+      resourceId: venueId,
+      resourceType: ResourceType.Venue,
+      permissionType,
+    });
+  }
+
+  async getUserPermissions(userId: number): Promise<UserPermission[]> {
+    return await this.permissionRepository.find({
+      where: { user: { id: userId } },
+      relations: ['user'],
+    });
+  }
+
+  async hasPermission(
+    userId: number,
+    permissionType: PermissionType,
+    resourceType: ResourceType,
+    resourceId: number,
+  ): Promise<boolean> {
+    const permission = await this.permissionRepository.findOneBy({
+      user: { id: userId },
+      permissionType,
+      resourceType,
+      resourceId,
+    });
+    return !!permission;
+  }
+
+  async removePermission(
+    userId: number,
+    permissionType: PermissionType,
+    resourceType: ResourceType,
+    resourceId: number,
+  ) {
+    const permission = await this.permissionRepository.findOneBy({
+      user: { id: userId },
+      permissionType,
+      resourceType,
+      resourceId,
+    });
+
+    if (!permission) {
+      throw new NotFoundException('Permission not found');
+    }
+
+    await this.permissionRepository.remove(permission);
+    return { message: 'Permission removed successfully' };
   }
 }

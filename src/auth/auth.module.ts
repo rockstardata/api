@@ -12,11 +12,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserPermission } from './entities/user-permission.entity';
 import { Organization } from 'src/organization/entities/organization.entity';
 import { Venue } from 'src/venue/entities/venue.entity';
+import { Business } from 'src/business/entities/business.entity';
 import { User } from 'src/users/entities/user.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserPermission, User, Organization, Venue]),
+    TypeOrmModule.forFeature([UserPermission, User, Organization, Venue, Business]),
     UsersModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
@@ -30,6 +31,6 @@ import { User } from 'src/users/entities/user.entity';
   ],
   controllers: [AuthController, PermissionsController],
   providers: [AuthService, JwtStrategy, PermissionsService],
-  exports: [JwtStrategy, PassportModule, JwtModule],
+  exports: [JwtStrategy, PassportModule, JwtModule, PermissionsService],
 })
 export class AuthModule {}

@@ -11,10 +11,18 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateSaleDto = void 0;
 const class_validator_1 = require("class-validator");
+const sale_entity_1 = require("../entities/sale.entity");
 class CreateSaleDto {
     productName;
     quantity;
     price;
+    totalAmount;
+    paymentMethod;
+    status;
+    notes;
+    ticketId;
+    venueId;
+    businessId;
 }
 exports.CreateSaleDto = CreateSaleDto;
 __decorate([
@@ -32,4 +40,39 @@ __decorate([
     (0, class_validator_1.Min)(0),
     __metadata("design:type", Number)
 ], CreateSaleDto.prototype, "price", void 0);
+__decorate([
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], CreateSaleDto.prototype, "totalAmount", void 0);
+__decorate([
+    (0, class_validator_1.IsEnum)(sale_entity_1.PaymentMethod),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateSaleDto.prototype, "paymentMethod", void 0);
+__decorate([
+    (0, class_validator_1.IsEnum)(sale_entity_1.SaleStatus),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateSaleDto.prototype, "status", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateSaleDto.prototype, "notes", void 0);
+__decorate([
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Number)
+], CreateSaleDto.prototype, "ticketId", void 0);
+__decorate([
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Number)
+], CreateSaleDto.prototype, "venueId", void 0);
+__decorate([
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Number)
+], CreateSaleDto.prototype, "businessId", void 0);
 //# sourceMappingURL=create-sale.dto.js.map
