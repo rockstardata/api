@@ -41,6 +41,9 @@ let OrganizationController = class OrganizationController {
     remove(id) {
         return this.organizationService.remove(id);
     }
+    assignUserToOrganization(orgId, userId) {
+        return this.organizationService.assignUserToOrganization(orgId, userId);
+    }
 };
 exports.OrganizationController = OrganizationController;
 __decorate([
@@ -80,6 +83,16 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], OrganizationController.prototype, "remove", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin),
+    (0, common_1.Post)(':orgId/assign-user/:userId'),
+    __param(0, (0, common_1.Param)('orgId', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Param)('userId', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:returntype", void 0)
+], OrganizationController.prototype, "assignUserToOrganization", null);
 exports.OrganizationController = OrganizationController = __decorate([
     (0, common_1.Controller)('organizations'),
     __metadata("design:paramtypes", [organization_service_1.OrganizationService])

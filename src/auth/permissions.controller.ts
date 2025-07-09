@@ -12,16 +12,24 @@ import { PermissionsService } from './permissions.service';
 import { AssignPermissionDto } from './dto/assign-permission.dto';
 import { PermissionType } from './enums/permission-type.enum';
 import { ResourceType } from './enums/resource-type.enum';
+import { Roles } from './decorators/roles.decorator';
+import { Role } from 'src/role/enums/role.enum';
+import { RolesGuard } from './guards/roles.guard';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('permissions')
 export class PermissionsController {
   constructor(private readonly permissionsService: PermissionsService) {}
 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.SuperAdmin)
   @Post('assign')
   assign(@Body() assignPermissionDto: AssignPermissionDto) {
     return this.permissionsService.assign(assignPermissionDto);
   }
 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.SuperAdmin)
   @Post('sales/organization/:organizationId/user/:userId')
   assignSalesPermissionToOrganization(
     @Param('organizationId') organizationId: string,
@@ -39,6 +47,8 @@ export class PermissionsController {
     );
   }
 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.SuperAdmin)
   @Post('sales/business/:businessId/user/:userId')
   assignSalesPermissionToBusiness(
     @Param('businessId') businessId: string,
@@ -56,6 +66,8 @@ export class PermissionsController {
     );
   }
 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.SuperAdmin)
   @Post('sales/venue/:venueId/user/:userId')
   assignSalesPermissionToVenue(
     @Param('venueId') venueId: string,
@@ -93,6 +105,8 @@ export class PermissionsController {
     );
   }
 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.SuperAdmin)
   @Delete('remove/:userId')
   removePermission(
     @Param('userId') userId: string,

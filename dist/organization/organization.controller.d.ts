@@ -9,4 +9,5 @@ export declare class OrganizationController {
     findOne(id: number): Promise<import("./entities/organization.entity").Organization>;
     update(id: number, updateOrganizationDto: UpdateOrganizationDto): Promise<import("./entities/organization.entity").Organization>;
     remove(id: number): Promise<import("./entities/organization.entity").Organization>;
+    assignUserToOrganization(orgId: number, userId: number): Promise<import("./entities/organizationUser.entity").OrganizationUser>;
 }

@@ -50,4 +50,15 @@ export class OrganizationController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.organizationService.remove(id);
   }
+
+  // Nuevo endpoint: solo Admin puede asignar usuarios a organizaciones
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.Admin)
+  @Post(':orgId/assign-user/:userId')
+  assignUserToOrganization(
+    @Param('orgId', ParseIntPipe) orgId: number,
+    @Param('userId', ParseIntPipe) userId: number,
+  ) {
+    return this.organizationService.assignUserToOrganization(orgId, userId);
+  }
 }
