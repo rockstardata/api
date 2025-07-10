@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   postgres-db:
-    image: postgres:15-alpine
+    image: docker.uclv.cu/postgres:latest
     container_name: postgres_db
     restart: always
     environment:
@@ -12,7 +12,23 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data 
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    container_name: backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres-db
+    ports:
+      - '3000:3000'
+    env_file:
+      - .env.local # Corregido el nombre del archivo
+    command: sh -c "npm run start:dev"
+    volumes: # Recomendado para desarrollo: montar el código
+      - .:/app
+      - /app/node_modules
 
 volumes:
   postgres_data: 
