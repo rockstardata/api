@@ -21,7 +21,7 @@ const typeorm_1 = require("@nestjs/typeorm");
 const user_permission_entity_1 = require("./entities/user-permission.entity");
 const organization_entity_1 = require("../organization/entities/organization.entity");
 const venue_entity_1 = require("../venue/entities/venue.entity");
-const business_entity_1 = require("../business/entities/business.entity");
+const company_entity_1 = require("../company/entities/company.entity");
 const user_entity_1 = require("../users/entities/user.entity");
 let AuthModule = class AuthModule {
 };
@@ -29,7 +29,7 @@ exports.AuthModule = AuthModule;
 exports.AuthModule = AuthModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forFeature([user_permission_entity_1.UserPermission, user_entity_1.User, organization_entity_1.Organization, venue_entity_1.Venue, business_entity_1.Business]),
+            typeorm_1.TypeOrmModule.forFeature([user_permission_entity_1.UserPermission, user_entity_1.User, organization_entity_1.Organization, venue_entity_1.Venue, company_entity_1.Company]),
             users_module_1.UsersModule,
             passport_1.PassportModule.register({ defaultStrategy: 'jwt' }),
             jwt_1.JwtModule.registerAsync({

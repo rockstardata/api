@@ -5,7 +5,7 @@ export declare class PermissionsController {
     constructor(permissionsService: PermissionsService);
     assign(assignPermissionDto: AssignPermissionDto): Promise<import("./entities/user-permission.entity").UserPermission>;
     assignSalesPermissionToOrganization(organizationId: string, userId: string, permissionType?: string): Promise<import("./entities/user-permission.entity").UserPermission>;
-    assignSalesPermissionToBusiness(businessId: string, userId: string, permissionType?: string): Promise<import("./entities/user-permission.entity").UserPermission>;
+    assignSalesPermissionToCompany(companyId: string, userId: string, permissionType?: string): Promise<import("./entities/user-permission.entity").UserPermission>;
     assignSalesPermissionToVenue(venueId: string, userId: string, permissionType?: string): Promise<import("./entities/user-permission.entity").UserPermission>;
     getUserPermissions(userId: string): Promise<import("./entities/user-permission.entity").UserPermission[]>;
     checkPermission(userId: string, permissionType: string, resourceType: string, resourceId: string): Promise<boolean>;

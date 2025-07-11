@@ -19,18 +19,25 @@ const typeorm_2 = require("typeorm");
 const organization_entity_1 = require("./entities/organization.entity");
 const organizationUser_entity_1 = require("./entities/organizationUser.entity");
 const user_entity_1 = require("../users/entities/user.entity");
+const sync_service_1 = require("../database/sync.service");
 let OrganizationService = class OrganizationService {
     organizationRepository;
     organizationUserRepository;
     userRepository;
-    constructor(organizationRepository, organizationUserRepository, userRepository) {
+    syncService;
+    constructor(organizationRepository, organizationUserRepository, userRepository, syncService) {
         this.organizationRepository = organizationRepository;
         this.organizationUserRepository = organizationUserRepository;
         this.userRepository = userRepository;
+        this.syncService = syncService;
     }
-    create(createOrganizationDto) {
+    async create(createOrganizationDto) {
         const organization = this.organizationRepository.create(createOrganizationDto);
-        return this.organizationRepository.save(organization);
+        const savedOrganization = await this.organizationRepository.save(organization);
+        this.syncService.syncEntity('Organization', 'create', savedOrganization).catch(error => {
+            console.error('Failed to sync organization creation to external DB:', error);
+        });
+        return savedOrganization;
     }
     findAll() {
         return this.organizationRepository.find();
@@ -50,11 +57,18 @@ let OrganizationService = class OrganizationService {
         if (!organization) {
             throw new common_1.NotFoundException(`Organization with ID "${id}" not found`);
         }
-        return this.organizationRepository.save(organization);
+        const updatedOrganization = await this.organizationRepository.save(organization);
+        this.syncService.syncEntity('Organization', 'update', updatedOrganization).catch(error => {
+            console.error('Failed to sync organization update to external DB:', error);
+        });
+        return updatedOrganization;
     }
     async remove(id) {
         const organization = await this.findOne(id);
-        return this.organizationRepository.remove(organization);
+        await this.organizationRepository.remove(organization);
+        this.syncService.syncEntity('Organization', 'delete', { id }).catch(error => {
+            console.error('Failed to sync organization deletion to external DB:', error);
+        });
     }
     async assignUserToOrganization(orgId, userId) {
         const organization = await this.organizationRepository.findOneBy({ id: orgId });
@@ -78,6 +92,7 @@ exports.OrganizationService = OrganizationService = __decorate([
     __param(2, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
         typeorm_2.Repository,
-        typeorm_2.Repository])
+        typeorm_2.Repository,
+        sync_service_1.SyncService])
 ], OrganizationService);
 //# sourceMappingURL=organization.service.js.map

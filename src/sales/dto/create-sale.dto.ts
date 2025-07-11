@@ -45,9 +45,4 @@ export class CreateSaleDto {
   @IsNumber()
   @IsOptional()
   venueId?: number;
-
-  // Opción 3: Si quieres asociar la venta directamente a un negocio
-  @IsNumber()
-  @IsOptional()
-  businessId?: number;
 }

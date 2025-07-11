@@ -10,9 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Business = void 0;
-const organization_entity_1 = require("../../organization/entities/organization.entity");
-const staff_member_entity_1 = require("../../staff-member/entities/staff-member.entity");
-const venue_entity_1 = require("../../venue/entities/venue.entity");
+const company_entity_1 = require("../../company/entities/company.entity");
 const user_entity_1 = require("../../users/entities/user.entity");
 const typeorm_1 = require("typeorm");
 let Business = class Business {
@@ -27,10 +25,8 @@ let Business = class Business {
     isActive;
     createdAt;
     updatedAt;
-    organization;
+    company;
     createdBy;
-    staffMembers;
-    venues;
 };
 exports.Business = Business;
 __decorate([
@@ -78,21 +74,13 @@ __decorate([
     __metadata("design:type", Date)
 ], Business.prototype, "updatedAt", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => organization_entity_1.Organization, (org) => org.businesses),
-    __metadata("design:type", organization_entity_1.Organization)
-], Business.prototype, "organization", void 0);
+    (0, typeorm_1.ManyToOne)(() => company_entity_1.Company, (company) => company.businesses),
+    __metadata("design:type", company_entity_1.Company)
+], Business.prototype, "company", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { nullable: true }),
     __metadata("design:type", user_entity_1.User)
 ], Business.prototype, "createdBy", void 0);
-__decorate([
-    (0, typeorm_1.OneToMany)(() => staff_member_entity_1.StaffMember, (staff) => staff.business),
-    __metadata("design:type", Array)
-], Business.prototype, "staffMembers", void 0);
-__decorate([
-    (0, typeorm_1.OneToMany)(() => venue_entity_1.Venue, (venue) => venue.business),
-    __metadata("design:type", Array)
-], Business.prototype, "venues", void 0);
 exports.Business = Business = __decorate([
     (0, typeorm_1.Entity)()
 ], Business);

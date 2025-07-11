@@ -17,10 +17,13 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const business_entity_1 = require("./entities/business.entity");
+const sync_service_1 = require("../database/sync.service");
 let BusinessService = class BusinessService {
     businessRepository;
-    constructor(businessRepository) {
+    syncService;
+    constructor(businessRepository, syncService) {
         this.businessRepository = businessRepository;
+        this.syncService = syncService;
     }
     async create(createBusinessDto, userId) {
         const businessData = {
@@ -30,17 +33,21 @@ let BusinessService = class BusinessService {
             businessData.createdBy = { id: userId };
         }
         const business = this.businessRepository.create(businessData);
-        return await this.businessRepository.save(business);
+        const savedBusiness = await this.businessRepository.save(business);
+        this.syncService.syncEntity('Business', 'create', savedBusiness).catch(error => {
+            console.error('Failed to sync business creation to external DB:', error);
+        });
+        return savedBusiness;
     }
     async findAll() {
         return await this.businessRepository.find({
-            relations: ['organization', 'createdBy', 'staffMembers', 'venues'],
+            relations: ['company', 'createdBy', 'staffMembers'],
         });
     }
     async findOne(id) {
         const business = await this.businessRepository.findOne({
             where: { id },
-            relations: ['organization', 'createdBy', 'staffMembers', 'venues'],
+            relations: ['company', 'createdBy', 'staffMembers'],
         });
         if (!business) {
             throw new common_1.NotFoundException(`Business with ID ${id} not found`);
@@ -50,16 +57,23 @@ let BusinessService = class BusinessService {
     async update(id, updateBusinessDto) {
         const business = await this.findOne(id);
         Object.assign(business, updateBusinessDto);
-        return await this.businessRepository.save(business);
+        const updatedBusiness = await this.businessRepository.save(business);
+        this.syncService.syncEntity('Business', 'update', updatedBusiness).catch(error => {
+            console.error('Failed to sync business update to external DB:', error);
+        });
+        return updatedBusiness;
     }
     async remove(id) {
         const business = await this.findOne(id);
         await this.businessRepository.remove(business);
+        this.syncService.syncEntity('Business', 'delete', { id }).catch(error => {
+            console.error('Failed to sync business deletion to external DB:', error);
+        });
     }
-    async findByOrganization(organizationId) {
+    async findByCompany(companyId) {
         return await this.businessRepository.find({
-            where: { organization: { id: organizationId } },
-            relations: ['organization', 'createdBy', 'staffMembers', 'venues'],
+            where: { company: { id: companyId } },
+            relations: ['company', 'createdBy', 'staffMembers'],
         });
     }
 };
@@ -67,6 +81,7 @@ exports.BusinessService = BusinessService;
 exports.BusinessService = BusinessService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(business_entity_1.Business)),
-    __metadata("design:paramtypes", [typeorm_2.Repository])
+    __metadata("design:paramtypes", [typeorm_2.Repository,
+        sync_service_1.SyncService])
 ], BusinessService);
 //# sourceMappingURL=business.service.js.map

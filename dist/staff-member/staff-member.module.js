@@ -8,15 +8,22 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StaffMemberModule = void 0;
 const common_1 = require("@nestjs/common");
+const typeorm_1 = require("@nestjs/typeorm");
 const staff_member_service_1 = require("./staff-member.service");
 const staff_member_controller_1 = require("./staff-member.controller");
+const staff_member_entity_1 = require("./entities/staff-member.entity");
+const venue_entity_1 = require("../venue/entities/venue.entity");
+const user_entity_1 = require("../users/entities/user.entity");
+const sync_service_1 = require("../database/sync.service");
 let StaffMemberModule = class StaffMemberModule {
 };
 exports.StaffMemberModule = StaffMemberModule;
 exports.StaffMemberModule = StaffMemberModule = __decorate([
     (0, common_1.Module)({
+        imports: [typeorm_1.TypeOrmModule.forFeature([staff_member_entity_1.StaffMember, venue_entity_1.Venue, user_entity_1.User])],
         controllers: [staff_member_controller_1.StaffMemberController],
-        providers: [staff_member_service_1.StaffMemberService],
+        providers: [staff_member_service_1.StaffMemberService, sync_service_1.SyncService],
+        exports: [staff_member_service_1.StaffMemberService],
     })
 ], StaffMemberModule);
 //# sourceMappingURL=staff-member.module.js.map

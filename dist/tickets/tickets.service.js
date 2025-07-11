@@ -18,16 +18,21 @@ const typeorm_1 = require("@nestjs/typeorm");
 const venue_entity_1 = require("../venue/entities/venue.entity");
 const typeorm_2 = require("typeorm");
 const ticket_entity_1 = require("./entities/ticket.entity");
+const sync_service_1 = require("../database/sync.service");
 let TicketsService = class TicketsService {
     ticketRepository;
     venueRepository;
-    constructor(ticketRepository, venueRepository) {
+    syncService;
+    constructor(ticketRepository, venueRepository, syncService) {
         this.ticketRepository = ticketRepository;
         this.venueRepository = venueRepository;
+        this.syncService = syncService;
     }
     async create(createTicketDto) {
         const { venueId, sales, ...ticketData } = createTicketDto;
-        const venue = await this.venueRepository.findOneBy({ id: venueId });
+        const venue = await this.venueRepository.findOne({
+            where: { id: venueId },
+        });
         if (!venue) {
             throw new common_1.NotFoundException(`Venue with ID "${venueId}" not found`);
         }
@@ -36,7 +41,13 @@ let TicketsService = class TicketsService {
             venue,
             sales: sales,
         });
-        return this.ticketRepository.save(ticket);
+        const savedTicket = await this.ticketRepository.save(ticket);
+        this.syncService
+            .syncEntity('Ticket', 'create', savedTicket)
+            .catch((error) => {
+            console.error('Failed to sync ticket creation to external DB:', error);
+        });
+        return savedTicket;
     }
     findAll() {
         return this.ticketRepository.find({
@@ -60,6 +71,7 @@ exports.TicketsService = TicketsService = __decorate([
     __param(0, (0, typeorm_1.InjectRepository)(ticket_entity_1.Ticket)),
     __param(1, (0, typeorm_1.InjectRepository)(venue_entity_1.Venue)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
-        typeorm_2.Repository])
+        typeorm_2.Repository,
+        sync_service_1.SyncService])
 ], TicketsService);
 //# sourceMappingURL=tickets.service.js.map

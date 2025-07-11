@@ -6,8 +6,7 @@ export declare class SalesController {
     constructor(salesService: SalesService);
     create(createSaleDto: CreateSaleDto): Promise<import("./entities/sale.entity").Sale>;
     findAll(): Promise<import("./entities/sale.entity").Sale[]>;
-    getSalesSummary(businessId?: string, venueId?: string): Promise<any>;
-    findByBusiness(businessId: string): Promise<import("./entities/sale.entity").Sale[]>;
+    getSalesSummary(venueId?: string): Promise<any>;
     findByVenue(venueId: string): Promise<import("./entities/sale.entity").Sale[]>;
     findByUser(userId: string): Promise<import("./entities/sale.entity").Sale[]>;
     findOne(id: string): Promise<import("./entities/sale.entity").Sale>;

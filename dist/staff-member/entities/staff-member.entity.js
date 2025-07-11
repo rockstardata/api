@@ -10,7 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StaffMember = exports.StaffRole = void 0;
-const business_entity_1 = require("../../business/entities/business.entity");
+const venue_entity_1 = require("../../venue/entities/venue.entity");
 const user_entity_1 = require("../../users/entities/user.entity");
 const typeorm_1 = require("typeorm");
 var StaffRole;
@@ -33,7 +33,7 @@ let StaffMember = class StaffMember {
     salary;
     createdAt;
     updatedAt;
-    business;
+    venue;
     user;
 };
 exports.StaffMember = StaffMember;
@@ -70,8 +70,8 @@ __decorate([
     __metadata("design:type", Boolean)
 ], StaffMember.prototype, "isActive", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", Date)
+    (0, typeorm_1.Column)({ type: 'timestamp', nullable: true }),
+    __metadata("design:type", Object)
 ], StaffMember.prototype, "hireDate", void 0);
 __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
@@ -86,9 +86,9 @@ __decorate([
     __metadata("design:type", Date)
 ], StaffMember.prototype, "updatedAt", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => business_entity_1.Business, (business) => business.staffMembers),
-    __metadata("design:type", business_entity_1.Business)
-], StaffMember.prototype, "business", void 0);
+    (0, typeorm_1.ManyToOne)(() => venue_entity_1.Venue, (venue) => venue.staffMembers),
+    __metadata("design:type", venue_entity_1.Venue)
+], StaffMember.prototype, "venue", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { nullable: true }),
     __metadata("design:type", user_entity_1.User)

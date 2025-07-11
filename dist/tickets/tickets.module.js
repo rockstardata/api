@@ -14,6 +14,7 @@ const typeorm_1 = require("@nestjs/typeorm");
 const ticket_entity_1 = require("./entities/ticket.entity");
 const sale_entity_1 = require("../sales/entities/sale.entity");
 const venue_entity_1 = require("../venue/entities/venue.entity");
+const sync_service_1 = require("../database/sync.service");
 let TicketsModule = class TicketsModule {
 };
 exports.TicketsModule = TicketsModule;
@@ -21,7 +22,8 @@ exports.TicketsModule = TicketsModule = __decorate([
     (0, common_1.Module)({
         imports: [typeorm_1.TypeOrmModule.forFeature([ticket_entity_1.Ticket, sale_entity_1.Sale, venue_entity_1.Venue])],
         controllers: [tickets_controller_1.TicketsController],
-        providers: [tickets_service_1.TicketsService],
+        providers: [tickets_service_1.TicketsService, sync_service_1.SyncService],
+        exports: [tickets_service_1.TicketsService],
     })
 ], TicketsModule);
 //# sourceMappingURL=tickets.module.js.map

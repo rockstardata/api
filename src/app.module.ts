@@ -4,6 +4,7 @@ import { DatabaseModule } from './database/database.module';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { OrganizationModule } from './organization/organization.module';
+import { CompanyModule } from './company/company.module';
 import { BusinessModule } from './business/business.module';
 import { StaffMemberModule } from './staff-member/staff-member.module';
 import { VenueModule } from './venue/venue.module';
@@ -24,6 +25,7 @@ import { AuthModule } from './auth/auth.module';
     DatabaseModule,
     UsersModule,
     OrganizationModule,
+    CompanyModule,
     BusinessModule,
     StaffMemberModule,
     VenueModule,

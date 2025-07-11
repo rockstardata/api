@@ -15,6 +15,7 @@ const class_transformer_1 = require("class-transformer");
 const organizationUser_entity_1 = require("../../organization/entities/organizationUser.entity");
 const user_venue_role_entity_1 = require("./user-venue-role.entity");
 const user_permission_entity_1 = require("../../auth/entities/user-permission.entity");
+const user_permission_level_entity_1 = require("./user-permission-level.entity");
 let User = class User {
     id;
     firstName;
@@ -24,6 +25,7 @@ let User = class User {
     organizationUsers;
     userVenueRoles;
     permissions;
+    permissionLevels;
 };
 exports.User = User;
 __decorate([
@@ -59,6 +61,10 @@ __decorate([
     (0, typeorm_1.OneToMany)(() => user_permission_entity_1.UserPermission, (permission) => permission.user),
     __metadata("design:type", Array)
 ], User.prototype, "permissions", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => user_permission_level_entity_1.UserPermissionLevel, (permissionLevel) => permissionLevel.user),
+    __metadata("design:type", Array)
+], User.prototype, "permissionLevels", void 0);
 exports.User = User = __decorate([
     (0, typeorm_1.Entity)()
 ], User);

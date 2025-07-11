@@ -12,6 +12,7 @@ const typeorm_1 = require("@nestjs/typeorm");
 const business_service_1 = require("./business.service");
 const business_controller_1 = require("./business.controller");
 const business_entity_1 = require("./entities/business.entity");
+const sync_service_1 = require("../database/sync.service");
 let BusinessModule = class BusinessModule {
 };
 exports.BusinessModule = BusinessModule;
@@ -19,7 +20,7 @@ exports.BusinessModule = BusinessModule = __decorate([
     (0, common_1.Module)({
         imports: [typeorm_1.TypeOrmModule.forFeature([business_entity_1.Business])],
         controllers: [business_controller_1.BusinessController],
-        providers: [business_service_1.BusinessService],
+        providers: [business_service_1.BusinessService, sync_service_1.SyncService],
         exports: [business_service_1.BusinessService],
     })
 ], BusinessModule);

@@ -28,11 +28,8 @@ let SalesController = class SalesController {
     findAll() {
         return this.salesService.findAll();
     }
-    getSalesSummary(businessId, venueId) {
-        return this.salesService.getSalesSummary(businessId ? parseInt(businessId) : undefined, venueId ? parseInt(venueId) : undefined);
-    }
-    findByBusiness(businessId) {
-        return this.salesService.findByBusiness(+businessId);
+    getSalesSummary(venueId) {
+        return this.salesService.getSalesSummary(venueId ? parseInt(venueId) : undefined);
     }
     findByVenue(venueId) {
         return this.salesService.findByVenue(+venueId);
@@ -66,19 +63,11 @@ __decorate([
 ], SalesController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)('summary'),
-    __param(0, (0, common_1.Query)('businessId')),
-    __param(1, (0, common_1.Query)('venueId')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
-    __metadata("design:returntype", void 0)
-], SalesController.prototype, "getSalesSummary", null);
-__decorate([
-    (0, common_1.Get)('business/:businessId'),
-    __param(0, (0, common_1.Param)('businessId')),
+    __param(0, (0, common_1.Query)('venueId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
-], SalesController.prototype, "findByBusiness", null);
+], SalesController.prototype, "getSalesSummary", null);
 __decorate([
     (0, common_1.Get)('venue/:venueId'),
     __param(0, (0, common_1.Param)('venueId')),

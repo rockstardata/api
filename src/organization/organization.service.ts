@@ -6,6 +6,7 @@ import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { Organization } from './entities/organization.entity';
 import { OrganizationUser } from './entities/organizationUser.entity';
 import { User } from 'src/users/entities/user.entity';
+import { SyncService } from '../database/sync.service';
 
 @Injectable()
 export class OrganizationService {
@@ -16,13 +17,21 @@ export class OrganizationService {
     private readonly organizationUserRepository: Repository<OrganizationUser>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly syncService: SyncService,
   ) {}
 
-  create(createOrganizationDto: CreateOrganizationDto) {
+  async create(createOrganizationDto: CreateOrganizationDto) {
     const organization = this.organizationRepository.create(
       createOrganizationDto,
     );
-    return this.organizationRepository.save(organization);
+    const savedOrganization = await this.organizationRepository.save(organization);
+    
+    // Sincronizar con base de datos externa de forma asíncrona
+    this.syncService.syncEntity('Organization', 'create', savedOrganization).catch(error => {
+      console.error('Failed to sync organization creation to external DB:', error);
+    });
+    
+    return savedOrganization;
   }
 
   findAll() {
@@ -45,12 +54,24 @@ export class OrganizationService {
     if (!organization) {
       throw new NotFoundException(`Organization with ID "${id}" not found`);
     }
-    return this.organizationRepository.save(organization);
+    const updatedOrganization = await this.organizationRepository.save(organization);
+    
+    // Sincronizar con base de datos externa de forma asíncrona
+    this.syncService.syncEntity('Organization', 'update', updatedOrganization).catch(error => {
+      console.error('Failed to sync organization update to external DB:', error);
+    });
+    
+    return updatedOrganization;
   }
 
   async remove(id: number) {
     const organization = await this.findOne(id);
-    return this.organizationRepository.remove(organization);
+    await this.organizationRepository.remove(organization);
+    
+    // Sincronizar eliminación con base de datos externa de forma asíncrona
+    this.syncService.syncEntity('Organization', 'delete', { id }).catch(error => {
+      console.error('Failed to sync organization deletion to external DB:', error);
+    });
   }
 
   async assignUserToOrganization(orgId: number, userId: number) {

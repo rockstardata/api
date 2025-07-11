@@ -10,10 +10,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Ticket = exports.TicketStatus = void 0;
-const sale_entity_1 = require("../../sales/entities/sale.entity");
 const venue_entity_1 = require("../../venue/entities/venue.entity");
 const user_entity_1 = require("../../users/entities/user.entity");
-const business_entity_1 = require("../../business/entities/business.entity");
+const sale_entity_1 = require("../../sales/entities/sale.entity");
 const typeorm_1 = require("typeorm");
 var TicketStatus;
 (function (TicketStatus) {
@@ -34,7 +33,6 @@ let Ticket = class Ticket {
     updatedAt;
     venue;
     createdBy;
-    business;
     sales;
 };
 exports.Ticket = Ticket;
@@ -86,10 +84,6 @@ __decorate([
     (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { nullable: true }),
     __metadata("design:type", user_entity_1.User)
 ], Ticket.prototype, "createdBy", void 0);
-__decorate([
-    (0, typeorm_1.ManyToOne)(() => business_entity_1.Business, { nullable: true }),
-    __metadata("design:type", business_entity_1.Business)
-], Ticket.prototype, "business", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => sale_entity_1.Sale, (sale) => sale.ticket, { cascade: true }),
     __metadata("design:type", Array)

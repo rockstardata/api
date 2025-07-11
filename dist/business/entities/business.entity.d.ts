@@ -1,6 +1,4 @@
-import { Organization } from 'src/organization/entities/organization.entity';
-import { StaffMember } from 'src/staff-member/entities/staff-member.entity';
-import { Venue } from 'src/venue/entities/venue.entity';
+import { Company } from 'src/company/entities/company.entity';
 import { User } from 'src/users/entities/user.entity';
 export declare class Business {
     id: number;
@@ -14,8 +12,6 @@ export declare class Business {
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
-    organization: Organization;
+    company: Company;
     createdBy: User;
-    staffMembers: StaffMember[];
-    venues: Venue[];
 }

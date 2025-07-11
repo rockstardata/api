@@ -9,5 +9,4 @@ export declare class CreateSaleDto {
     notes?: string;
     ticketId?: number;
     venueId?: number;
-    businessId?: number;
 }

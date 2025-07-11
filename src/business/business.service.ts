@@ -4,12 +4,14 @@ import { Repository } from 'typeorm';
 import { CreateBusinessDto } from './dto/create-business.dto';
 import { UpdateBusinessDto } from './dto/update-business.dto';
 import { Business } from './entities/business.entity';
+import { SyncService } from '../database/sync.service';
 
 @Injectable()
 export class BusinessService {
   constructor(
     @InjectRepository(Business)
     private readonly businessRepository: Repository<Business>,
+    private readonly syncService: SyncService,
   ) {}
 
   async create(createBusinessDto: CreateBusinessDto, userId?: number): Promise<Business> {
@@ -22,19 +24,26 @@ export class BusinessService {
     }
     
     const business = this.businessRepository.create(businessData);
-    return await this.businessRepository.save(business);
+    const savedBusiness = await this.businessRepository.save(business);
+    
+    // Sincronizar con base de datos externa de forma asíncrona
+    this.syncService.syncEntity('Business', 'create', savedBusiness).catch(error => {
+      console.error('Failed to sync business creation to external DB:', error);
+    });
+    
+    return savedBusiness;
   }
 
   async findAll(): Promise<Business[]> {
     return await this.businessRepository.find({
-      relations: ['organization', 'createdBy', 'staffMembers', 'venues'],
+      relations: ['company', 'createdBy', 'staffMembers'],
     });
   }
 
   async findOne(id: number): Promise<Business> {
     const business = await this.businessRepository.findOne({
       where: { id },
-      relations: ['organization', 'createdBy', 'staffMembers', 'venues'],
+      relations: ['company', 'createdBy', 'staffMembers'],
     });
     
     if (!business) {
@@ -47,18 +56,30 @@ export class BusinessService {
   async update(id: number, updateBusinessDto: UpdateBusinessDto): Promise<Business> {
     const business = await this.findOne(id);
     Object.assign(business, updateBusinessDto);
-    return await this.businessRepository.save(business);
+    const updatedBusiness = await this.businessRepository.save(business);
+    
+    // Sincronizar con base de datos externa de forma asíncrona
+    this.syncService.syncEntity('Business', 'update', updatedBusiness).catch(error => {
+      console.error('Failed to sync business update to external DB:', error);
+    });
+    
+    return updatedBusiness;
   }
 
   async remove(id: number): Promise<void> {
     const business = await this.findOne(id);
     await this.businessRepository.remove(business);
+    
+    // Sincronizar eliminación con base de datos externa de forma asíncrona
+    this.syncService.syncEntity('Business', 'delete', { id }).catch(error => {
+      console.error('Failed to sync business deletion to external DB:', error);
+    });
   }
 
-  async findByOrganization(organizationId: number): Promise<Business[]> {
+  async findByCompany(companyId: number): Promise<Business[]> {
     return await this.businessRepository.find({
-      where: { organization: { id: organizationId } },
-      relations: ['organization', 'createdBy', 'staffMembers', 'venues'],
+      where: { company: { id: companyId } },
+      relations: ['company', 'createdBy', 'staffMembers'],
     });
   }
 }
