@@ -22,7 +22,6 @@ class CreateSaleDto {
     notes;
     ticketId;
     venueId;
-    businessId;
 }
 exports.CreateSaleDto = CreateSaleDto;
 __decorate([
@@ -70,9 +69,4 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Number)
 ], CreateSaleDto.prototype, "venueId", void 0);
-__decorate([
-    (0, class_validator_1.IsNumber)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", Number)
-], CreateSaleDto.prototype, "businessId", void 0);
 //# sourceMappingURL=create-sale.dto.js.map

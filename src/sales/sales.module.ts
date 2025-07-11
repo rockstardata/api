@@ -5,16 +5,16 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Sale } from './entities/sale.entity';
 import { Ticket } from 'src/tickets/entities/ticket.entity';
 import { Venue } from 'src/venue/entities/venue.entity';
-import { Business } from 'src/business/entities/business.entity';
 import { AuthModule } from 'src/auth/auth.module';
+import { SyncService } from '../database/sync.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Sale, Ticket, Venue, Business]), 
+    TypeOrmModule.forFeature([Sale, Ticket, Venue]),
     AuthModule
   ],
   controllers: [SalesController],
-  providers: [SalesService],
+  providers: [SalesService, SyncService],
   exports: [SalesService],
 })
 export class SalesModule {}

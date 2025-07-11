@@ -1,7 +1,5 @@
-import { Ticket } from 'src/tickets/entities/ticket.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Venue } from 'src/venue/entities/venue.entity';
-import { Business } from 'src/business/entities/business.entity';
 export declare enum PaymentMethod {
     CASH = "cash",
     CREDIT_CARD = "credit_card",
@@ -26,8 +24,7 @@ export declare class Sale {
     notes: string;
     createdAt: Date;
     updatedAt: Date;
-    ticket: Ticket;
+    ticket: any;
     createdBy: User;
     venue: Venue;
-    business: Business;
 }

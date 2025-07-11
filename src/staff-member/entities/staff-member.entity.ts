@@ -1,4 +1,4 @@
-import { Business } from 'src/business/entities/business.entity';
+import { Venue } from 'src/venue/entities/venue.entity';
 import { User } from 'src/users/entities/user.entity';
 import {
   Column,
@@ -44,8 +44,8 @@ export class StaffMember {
   @Column({ default: true })
   isActive: boolean;
 
-  @Column({ nullable: true })
-  hireDate: Date;
+  @Column({ type: 'timestamp', nullable: true })
+  hireDate: Date | null;
 
   @Column({ nullable: true })
   salary: number;
@@ -56,8 +56,8 @@ export class StaffMember {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @ManyToOne(() => Business, (business) => business.staffMembers)
-  business: Business;
+  @ManyToOne(() => Venue, (venue) => venue.staffMembers)
+  venue: Venue;
 
   @ManyToOne(() => User, { nullable: true })
   user: User;

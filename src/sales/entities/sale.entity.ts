@@ -1,7 +1,5 @@
-import { Ticket } from 'src/tickets/entities/ticket.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Venue } from 'src/venue/entities/venue.entity';
-import { Business } from 'src/business/entities/business.entity';
 import { 
   Column, 
   Entity, 
@@ -66,15 +64,12 @@ export class Sale {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @ManyToOne(() => Ticket, (ticket) => ticket.sales)
-  ticket: Ticket;
+  @ManyToOne('Ticket', 'sales')
+  ticket: any;
 
   @ManyToOne(() => User, { nullable: true })
   createdBy: User;
 
-  @ManyToOne(() => Venue, { nullable: true })
+  @ManyToOne(() => Venue)
   venue: Venue;
-
-  @ManyToOne(() => Business, { nullable: true })
-  business: Business;
 }

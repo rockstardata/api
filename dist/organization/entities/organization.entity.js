@@ -11,13 +11,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Organization = void 0;
 const typeorm_1 = require("typeorm");
-const business_entity_1 = require("../../business/entities/business.entity");
 const organizationUser_entity_1 = require("./organizationUser.entity");
+const company_entity_1 = require("../../company/entities/company.entity");
 let Organization = class Organization {
     id;
     name;
+    description;
+    isActive;
+    createdAt;
+    updatedAt;
     organizationUsers;
-    businesses;
+    companies;
 };
 exports.Organization = Organization;
 __decorate([
@@ -29,13 +33,29 @@ __decorate([
     __metadata("design:type", String)
 ], Organization.prototype, "name", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Organization.prototype, "description", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: true }),
+    __metadata("design:type", Boolean)
+], Organization.prototype, "isActive", void 0);
+__decorate([
+    (0, typeorm_1.CreateDateColumn)(),
+    __metadata("design:type", Date)
+], Organization.prototype, "createdAt", void 0);
+__decorate([
+    (0, typeorm_1.UpdateDateColumn)(),
+    __metadata("design:type", Date)
+], Organization.prototype, "updatedAt", void 0);
+__decorate([
     (0, typeorm_1.OneToMany)(() => organizationUser_entity_1.OrganizationUser, (organizationUser) => organizationUser.organization),
     __metadata("design:type", Array)
 ], Organization.prototype, "organizationUsers", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => business_entity_1.Business, (business) => business.organization),
+    (0, typeorm_1.OneToMany)(() => company_entity_1.Company, (company) => company.organization),
     __metadata("design:type", Array)
-], Organization.prototype, "businesses", void 0);
+], Organization.prototype, "companies", void 0);
 exports.Organization = Organization = __decorate([
     (0, typeorm_1.Entity)()
 ], Organization);

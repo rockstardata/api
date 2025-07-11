@@ -10,10 +10,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Sale = exports.SaleStatus = exports.PaymentMethod = void 0;
-const ticket_entity_1 = require("../../tickets/entities/ticket.entity");
 const user_entity_1 = require("../../users/entities/user.entity");
 const venue_entity_1 = require("../../venue/entities/venue.entity");
-const business_entity_1 = require("../../business/entities/business.entity");
 const typeorm_1 = require("typeorm");
 var PaymentMethod;
 (function (PaymentMethod) {
@@ -44,7 +42,6 @@ let Sale = class Sale {
     ticket;
     createdBy;
     venue;
-    business;
 };
 exports.Sale = Sale;
 __decorate([
@@ -96,21 +93,17 @@ __decorate([
     __metadata("design:type", Date)
 ], Sale.prototype, "updatedAt", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => ticket_entity_1.Ticket, (ticket) => ticket.sales),
-    __metadata("design:type", ticket_entity_1.Ticket)
+    (0, typeorm_1.ManyToOne)('Ticket', 'sales'),
+    __metadata("design:type", Object)
 ], Sale.prototype, "ticket", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { nullable: true }),
     __metadata("design:type", user_entity_1.User)
 ], Sale.prototype, "createdBy", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => venue_entity_1.Venue, { nullable: true }),
+    (0, typeorm_1.ManyToOne)(() => venue_entity_1.Venue),
     __metadata("design:type", venue_entity_1.Venue)
 ], Sale.prototype, "venue", void 0);
-__decorate([
-    (0, typeorm_1.ManyToOne)(() => business_entity_1.Business, { nullable: true }),
-    __metadata("design:type", business_entity_1.Business)
-], Sale.prototype, "business", void 0);
 exports.Sale = Sale = __decorate([
     (0, typeorm_1.Entity)()
 ], Sale);

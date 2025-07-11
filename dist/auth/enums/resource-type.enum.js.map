@@ -1,1 +1,1 @@
-{"version":3,"file":"resource-type.enum.js","sourceRoot":"","sources":["../../../src/auth/enums/resource-type.enum.ts"],"names":[],"mappings":";;;AAAA,IAAY,YAIX;AAJD,WAAY,YAAY;IACtB,6CAA6B,CAAA;IAC7B,+BAAe,CAAA;IACf,qCAAqB,CAAA;AACvB,CAAC,EAJW,YAAY,4BAAZ,YAAY,QAIvB"}
+{"version":3,"file":"resource-type.enum.js","sourceRoot":"","sources":["../../../src/auth/enums/resource-type.enum.ts"],"names":[],"mappings":";;;AAAA,IAAY,YAIX;AAJD,WAAY,YAAY;IACtB,6CAA6B,CAAA;IAC7B,mCAAmB,CAAA;IACnB,+BAAe,CAAA;AACjB,CAAC,EAJW,YAAY,4BAAZ,YAAY,QAIvB"}

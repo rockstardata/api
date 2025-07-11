@@ -14,19 +14,19 @@ const typeorm_1 = require("@nestjs/typeorm");
 const sale_entity_1 = require("./entities/sale.entity");
 const ticket_entity_1 = require("../tickets/entities/ticket.entity");
 const venue_entity_1 = require("../venue/entities/venue.entity");
-const business_entity_1 = require("../business/entities/business.entity");
 const auth_module_1 = require("../auth/auth.module");
+const sync_service_1 = require("../database/sync.service");
 let SalesModule = class SalesModule {
 };
 exports.SalesModule = SalesModule;
 exports.SalesModule = SalesModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forFeature([sale_entity_1.Sale, ticket_entity_1.Ticket, venue_entity_1.Venue, business_entity_1.Business]),
+            typeorm_1.TypeOrmModule.forFeature([sale_entity_1.Sale, ticket_entity_1.Ticket, venue_entity_1.Venue]),
             auth_module_1.AuthModule
         ],
         controllers: [sales_controller_1.SalesController],
-        providers: [sales_service_1.SalesService],
+        providers: [sales_service_1.SalesService, sync_service_1.SyncService],
         exports: [sales_service_1.SalesService],
     })
 ], SalesModule);

@@ -1,5 +1,5 @@
 export declare enum ResourceType {
     Organization = "organization",
-    Venue = "venue",
-    Business = "business"
+    Company = "company",
+    Venue = "venue"
 }

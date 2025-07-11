@@ -1,15 +1,16 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Sale } from './entities/sale.entity';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { UpdateSaleDto } from './dto/update-sale.dto';
+import { Sale, PaymentMethod, SaleStatus } from './entities/sale.entity';
+import { Ticket } from 'src/tickets/entities/ticket.entity';
+import { Venue } from 'src/venue/entities/venue.entity';
+import { User } from 'src/users/entities/user.entity';
 import { PermissionsService } from 'src/auth/permissions.service';
 import { PermissionType } from 'src/auth/enums/permission-type.enum';
 import { ResourceType } from 'src/auth/enums/resource-type.enum';
-import { Ticket } from 'src/tickets/entities/ticket.entity';
-import { Venue } from 'src/venue/entities/venue.entity';
-import { Business } from 'src/business/entities/business.entity';
+import { SyncService } from '../database/sync.service';
 
 @Injectable()
 export class SalesService {
@@ -20,26 +21,27 @@ export class SalesService {
     private readonly ticketRepository: Repository<Ticket>,
     @InjectRepository(Venue)
     private readonly venueRepository: Repository<Venue>,
-    @InjectRepository(Business)
-    private readonly businessRepository: Repository<Business>,
     private readonly permissionsService: PermissionsService,
+    private readonly syncService: SyncService,
   ) {}
 
   async create(createSaleDto: CreateSaleDto, userId?: number): Promise<Sale> {
     const saleData: Partial<Sale> = {
-      ...createSaleDto,
+      productName: createSaleDto.productName,
+      quantity: createSaleDto.quantity,
+      price: createSaleDto.price,
+      totalAmount: createSaleDto.quantity * createSaleDto.price,
+      paymentMethod: createSaleDto.paymentMethod || PaymentMethod.CASH,
+      status: createSaleDto.status || SaleStatus.COMPLETED,
+      notes: createSaleDto.notes,
+      createdBy: userId ? { id: userId } as User : undefined,
     };
-    
-    if (userId) {
-      saleData.createdBy = { id: userId } as any;
-    }
-    
-    // Manejar relaciones automáticamente
+
     if (createSaleDto.ticketId) {
-      // Si se especifica ticketId, obtener el ticket y sus relaciones
+      // Si se especifica ticketId, obtener el ticket y su venue
       const ticket = await this.ticketRepository.findOne({
         where: { id: createSaleDto.ticketId },
-        relations: ['venue', 'business'],
+        relations: ['venue'],
       });
       
       if (!ticket) {
@@ -48,19 +50,15 @@ export class SalesService {
       
       saleData.ticket = { id: createSaleDto.ticketId } as any;
       
-      // Verificar si el ticket tiene venue y business
+      // Verificar si el ticket tiene venue
       if (ticket.venue) {
         saleData.venue = { id: ticket.venue.id } as any;
       }
-      if (ticket.business) {
-        saleData.business = { id: ticket.business.id } as any;
-      }
       
     } else if (createSaleDto.venueId) {
-      // Si se especifica venueId, obtener el local y su negocio
+      // Si se especifica venueId, obtener el local
       const venue = await this.venueRepository.findOne({
         where: { id: createSaleDto.venueId },
-        relations: ['business'],
       });
       
       if (!venue) {
@@ -68,33 +66,23 @@ export class SalesService {
       }
       
       saleData.venue = { id: createSaleDto.venueId } as any;
-      
-      // Verificar si el venue tiene business
-      if (venue.business) {
-        saleData.business = { id: venue.business.id } as any;
-      }
-      
-    } else if (createSaleDto.businessId) {
-      // Si se especifica businessId, solo asignar el negocio
-      const business = await this.businessRepository.findOne({
-        where: { id: createSaleDto.businessId },
-      });
-      
-      if (!business) {
-        throw new NotFoundException(`Business with ID ${createSaleDto.businessId} not found`);
-      }
-      
-      saleData.business = { id: createSaleDto.businessId } as any;
     }
     
     const sale = this.saleRepository.create(saleData);
-    return await this.saleRepository.save(sale);
+    const savedSale = await this.saleRepository.save(sale);
+    
+    // Sincronizar con base de datos externa de forma asíncrona
+    this.syncService.syncEntity('Sale', 'create', savedSale).catch(error => {
+      console.error('Failed to sync sale creation to external DB:', error);
+    });
+    
+    return savedSale;
   }
 
   async findAll(userId?: number): Promise<Sale[]> {
     if (!userId) {
       return await this.saleRepository.find({
-        relations: ['ticket', 'createdBy', 'venue', 'business'],
+        relations: ['ticket', 'createdBy', 'venue'],
       });
     }
 
@@ -114,19 +102,18 @@ export class SalesService {
     const queryBuilder = this.saleRepository.createQueryBuilder('sale')
       .leftJoinAndSelect('sale.ticket', 'ticket')
       .leftJoinAndSelect('sale.createdBy', 'createdBy')
-      .leftJoinAndSelect('sale.venue', 'venue')
-      .leftJoinAndSelect('sale.business', 'business');
+      .leftJoinAndSelect('sale.venue', 'venue');
 
     const conditions: string[] = [];
     const parameters: any = {};
 
     for (const permission of salesPermissions) {
       if (permission.resourceType === ResourceType.Organization) {
-        conditions.push('business.organizationId = :orgId');
+        conditions.push('venue.company.organizationId = :orgId');
         parameters['orgId'] = permission.resourceId;
-      } else if (permission.resourceType === ResourceType.Business) {
-        conditions.push('sale.businessId = :businessId');
-        parameters['businessId'] = permission.resourceId;
+      } else if (permission.resourceType === ResourceType.Company) {
+        conditions.push('venue.companyId = :companyId');
+        parameters['companyId'] = permission.resourceId;
       } else if (permission.resourceType === ResourceType.Venue) {
         conditions.push('sale.venueId = :venueId');
         parameters['venueId'] = permission.resourceId;
@@ -143,7 +130,7 @@ export class SalesService {
   async findOne(id: number, userId?: number): Promise<Sale> {
     const sale = await this.saleRepository.findOne({
       where: { id },
-      relations: ['ticket', 'createdBy', 'venue', 'business'],
+      relations: ['ticket', 'createdBy', 'venue'],
     });
     
     if (!sale) {
@@ -167,7 +154,14 @@ export class SalesService {
     }
     
     Object.assign(sale, updateSaleDto);
-    return await this.saleRepository.save(sale);
+    const updatedSale = await this.saleRepository.save(sale);
+    
+    // Sincronizar con base de datos externa de forma asíncrona
+    this.syncService.syncEntity('Sale', 'update', updatedSale).catch(error => {
+      console.error('Failed to sync sale update to external DB:', error);
+    });
+    
+    return updatedSale;
   }
 
   async remove(id: number, userId?: number): Promise<void> {
@@ -179,22 +173,10 @@ export class SalesService {
     }
     
     await this.saleRepository.remove(sale);
-  }
-
-  async findByBusiness(businessId: number, userId?: number): Promise<Sale[]> {
-    // Verificar permisos
-    if (userId && !(await this.permissionsService.hasPermission(
-      userId, 
-      PermissionType.ViewSales, 
-      ResourceType.Business, 
-      businessId
-    ))) {
-      throw new ForbiddenException('You do not have permission to view sales for this business');
-    }
-
-    return await this.saleRepository.find({
-      where: { business: { id: businessId } },
-      relations: ['ticket', 'createdBy', 'venue', 'business'],
+    
+    // Sincronizar eliminación con base de datos externa de forma asíncrona
+    this.syncService.syncEntity('Sale', 'delete', { id }).catch(error => {
+      console.error('Failed to sync sale deletion to external DB:', error);
     });
   }
 
@@ -211,55 +193,91 @@ export class SalesService {
 
     return await this.saleRepository.find({
       where: { venue: { id: venueId } },
-      relations: ['ticket', 'createdBy', 'venue', 'business'],
+      relations: ['ticket', 'createdBy', 'venue'],
     });
   }
 
   async findByUser(userId: number): Promise<Sale[]> {
     return await this.saleRepository.find({
       where: { createdBy: { id: userId } },
-      relations: ['ticket', 'createdBy', 'venue', 'business'],
+      relations: ['ticket', 'createdBy', 'venue'],
     });
   }
 
-  async getSalesSummary(businessId?: number, venueId?: number, userId?: number): Promise<any> {
+  async getSalesSummary(venueId?: number, userId?: number): Promise<any> {
     const queryBuilder = this.saleRepository.createQueryBuilder('sale');
     
-    if (businessId) {
-      // Verificar permisos para el negocio
-      if (userId && !(await this.permissionsService.hasPermission(
-        userId, 
-        PermissionType.ViewSales, 
-        ResourceType.Business, 
-        businessId
-      ))) {
-        throw new ForbiddenException('You do not have permission to view sales summary for this business');
-      }
-      queryBuilder.where('sale.businessId = :businessId', { businessId });
-    }
-    
     if (venueId) {
-      // Verificar permisos para el local
-      if (userId && !(await this.permissionsService.hasPermission(
-        userId, 
-        PermissionType.ViewSales, 
-        ResourceType.Venue, 
-        venueId
-      ))) {
-        throw new ForbiddenException('You do not have permission to view sales summary for this venue');
-      }
-      queryBuilder.andWhere('sale.venueId = :venueId', { venueId });
+      queryBuilder.where('sale.venueId = :venueId', { venueId });
     }
-    
+
     const totalSales = await queryBuilder.getCount();
     const totalAmount = await queryBuilder
       .select('SUM(sale.totalAmount)', 'total')
       .getRawOne();
-    
+
     return {
       totalSales,
-      totalAmount: parseFloat(totalAmount?.total || '0'),
+      totalAmount: totalAmount?.total || 0,
     };
+  }
+
+  async getSalesByDateRange(
+    startDate: Date,
+    endDate: Date,
+    venueId?: number,
+    userId?: number
+  ): Promise<Sale[]> {
+    const queryBuilder = this.saleRepository
+      .createQueryBuilder('sale')
+      .leftJoinAndSelect('sale.ticket', 'ticket')
+      .leftJoinAndSelect('sale.createdBy', 'createdBy')
+      .leftJoinAndSelect('sale.venue', 'venue')
+      .where('sale.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate });
+
+    if (venueId) {
+      queryBuilder.andWhere('sale.venueId = :venueId', { venueId });
+    }
+
+    return await queryBuilder.getMany();
+  }
+
+  async getSalesByPaymentMethod(
+    paymentMethod: PaymentMethod,
+    venueId?: number,
+    userId?: number
+  ): Promise<Sale[]> {
+    const queryBuilder = this.saleRepository
+      .createQueryBuilder('sale')
+      .leftJoinAndSelect('sale.ticket', 'ticket')
+      .leftJoinAndSelect('sale.createdBy', 'createdBy')
+      .leftJoinAndSelect('sale.venue', 'venue')
+      .where('sale.paymentMethod = :paymentMethod', { paymentMethod });
+
+    if (venueId) {
+      queryBuilder.andWhere('sale.venueId = :venueId', { venueId });
+    }
+
+    return await queryBuilder.getMany();
+  }
+
+  async getSalesByStatus(
+    status: SaleStatus,
+    venueId?: number,
+    userId?: number
+  ): Promise<Sale[]> {
+    const queryBuilder = this.saleRepository
+      .createQueryBuilder('sale')
+      .leftJoinAndSelect('sale.ticket', 'ticket')
+      .leftJoinAndSelect('sale.createdBy', 'createdBy')
+      .leftJoinAndSelect('sale.venue', 'venue')
+      .where('sale.status = :status', { status });
+
+    if (venueId) {
+      queryBuilder.andWhere('sale.venueId = :venueId', { venueId });
+    }
+
+    return await queryBuilder.getMany();
   }
 
   private async canAccessSale(userId: number, sale: Sale): Promise<boolean> {
@@ -268,52 +286,42 @@ export class SalesService {
       return true;
     }
 
-    // Verificar permisos por organización
-    if (sale.business?.organization?.id) {
-      if (await this.permissionsService.hasPermission(
-        userId, 
-        PermissionType.ViewSales, 
-        ResourceType.Organization, 
-        sale.business.organization.id
-      )) {
-        return true;
-      }
+    // Verificar permisos específicos
+    if (sale.venue?.company?.organization?.id) {
+      return await this.permissionsService.hasPermission(
+        userId,
+        PermissionType.ViewSales,
+        ResourceType.Organization,
+        sale.venue.company.organization.id
+      );
     }
 
-    // Verificar permisos por negocio
-    if (sale.business?.id) {
-      if (await this.permissionsService.hasPermission(
-        userId, 
-        PermissionType.ViewSales, 
-        ResourceType.Business, 
-        sale.business.id
-      )) {
-        return true;
-      }
+    if (sale.venue?.company?.id) {
+      return await this.permissionsService.hasPermission(
+        userId,
+        PermissionType.ViewSales,
+        ResourceType.Company,
+        sale.venue.company.id
+      );
     }
 
-    // Verificar permisos por local
     if (sale.venue?.id) {
-      if (await this.permissionsService.hasPermission(
-        userId, 
-        PermissionType.ViewSales, 
-        ResourceType.Venue, 
+      return await this.permissionsService.hasPermission(
+        userId,
+        PermissionType.ViewSales,
+        ResourceType.Venue,
         sale.venue.id
-      )) {
-        return true;
-      }
+      );
     }
 
     return false;
   }
 
   private async hasUpdatePermission(userId: number, sale: Sale): Promise<boolean> {
-    // Verificar permisos de actualización similares a los de acceso
-    return await this.canAccessSale(userId, sale);
+    return await this.permissionsService.hasPermission(userId, PermissionType.UpdateSales, ResourceType.Venue, sale.venue?.id);
   }
 
   private async hasDeletePermission(userId: number, sale: Sale): Promise<boolean> {
-    // Verificar permisos de eliminación similares a los de acceso
-    return await this.canAccessSale(userId, sale);
+    return await this.permissionsService.hasPermission(userId, PermissionType.DeleteSales, ResourceType.Venue, sale.venue?.id);
   }
 }

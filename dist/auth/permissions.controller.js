@@ -35,11 +35,11 @@ let PermissionsController = class PermissionsController {
             : permission_type_enum_1.PermissionType.ViewSales;
         return this.permissionsService.assignSalesPermissionToOrganization(+userId, +organizationId, permission);
     }
-    assignSalesPermissionToBusiness(businessId, userId, permissionType) {
+    assignSalesPermissionToCompany(companyId, userId, permissionType) {
         const permission = permissionType
             ? permissionType
             : permission_type_enum_1.PermissionType.ViewSales;
-        return this.permissionsService.assignSalesPermissionToBusiness(+userId, +businessId, permission);
+        return this.permissionsService.assignSalesPermissionToCompany(+userId, +companyId, permission);
     }
     assignSalesPermissionToVenue(venueId, userId, permissionType) {
         const permission = permissionType
@@ -81,14 +81,14 @@ __decorate([
 __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.SuperAdmin),
-    (0, common_1.Post)('sales/business/:businessId/user/:userId'),
-    __param(0, (0, common_1.Param)('businessId')),
+    (0, common_1.Post)('sales/company/:companyId/user/:userId'),
+    __param(0, (0, common_1.Param)('companyId')),
     __param(1, (0, common_1.Param)('userId')),
     __param(2, (0, common_1.Query)('permissionType')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", void 0)
-], PermissionsController.prototype, "assignSalesPermissionToBusiness", null);
+], PermissionsController.prototype, "assignSalesPermissionToCompany", null);
 __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.SuperAdmin),

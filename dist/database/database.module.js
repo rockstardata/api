@@ -10,6 +10,7 @@ exports.DatabaseModule = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const typeorm_1 = require("@nestjs/typeorm");
+const sync_service_1 = require("./sync.service");
 let DatabaseModule = class DatabaseModule {
 };
 exports.DatabaseModule = DatabaseModule;
@@ -30,7 +31,28 @@ exports.DatabaseModule = DatabaseModule = __decorate([
                     synchronize: true,
                 }),
             }),
+            ...(process.env.EXTERNAL_DB_HOST ? [
+                typeorm_1.TypeOrmModule.forRootAsync({
+                    name: 'external',
+                    imports: [config_1.ConfigModule],
+                    inject: [config_1.ConfigService],
+                    useFactory: (configService) => ({
+                        type: 'postgres',
+                        host: configService.get('EXTERNAL_DB_HOST'),
+                        port: configService.get('EXTERNAL_DB_PORT'),
+                        username: configService.get('EXTERNAL_DB_USERNAME'),
+                        password: configService.get('EXTERNAL_DB_PASSWORD'),
+                        database: configService.get('EXTERNAL_DB_DATABASE'),
+                        entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+                        synchronize: false,
+                        logging: false,
+                        ssl: configService.get('EXTERNAL_DB_SSL', false),
+                    }),
+                })
+            ] : []),
         ],
+        providers: [sync_service_1.SyncService],
+        exports: [sync_service_1.SyncService],
     })
 ], DatabaseModule);
 //# sourceMappingURL=database.module.js.map

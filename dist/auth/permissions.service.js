@@ -18,7 +18,7 @@ const typeorm_1 = require("@nestjs/typeorm");
 const organization_entity_1 = require("../organization/entities/organization.entity");
 const user_entity_1 = require("../users/entities/user.entity");
 const venue_entity_1 = require("../venue/entities/venue.entity");
-const business_entity_1 = require("../business/entities/business.entity");
+const company_entity_1 = require("../company/entities/company.entity");
 const typeorm_2 = require("typeorm");
 const user_permission_entity_1 = require("./entities/user-permission.entity");
 const resource_type_enum_1 = require("./enums/resource-type.enum");
@@ -28,13 +28,13 @@ let PermissionsService = class PermissionsService {
     userRepository;
     organizationRepository;
     venueRepository;
-    businessRepository;
-    constructor(permissionRepository, userRepository, organizationRepository, venueRepository, businessRepository) {
+    companyRepository;
+    constructor(permissionRepository, userRepository, organizationRepository, venueRepository, companyRepository) {
         this.permissionRepository = permissionRepository;
         this.userRepository = userRepository;
         this.organizationRepository = organizationRepository;
         this.venueRepository = venueRepository;
-        this.businessRepository = businessRepository;
+        this.companyRepository = companyRepository;
     }
     async assign(assignPermissionDto) {
         const { userId, resourceId, resourceType } = assignPermissionDto;
@@ -48,15 +48,15 @@ let PermissionsService = class PermissionsService {
             if (!org)
                 throw new common_1.NotFoundException(`Organization with ID ${resourceId} not found`);
         }
+        else if (resourceType === resource_type_enum_1.ResourceType.Company) {
+            const company = await this.companyRepository.findOneBy({ id: resourceId });
+            if (!company)
+                throw new common_1.NotFoundException(`Company with ID ${resourceId} not found`);
+        }
         else if (resourceType === resource_type_enum_1.ResourceType.Venue) {
             const venue = await this.venueRepository.findOneBy({ id: resourceId });
             if (!venue)
                 throw new common_1.NotFoundException(`Venue with ID ${resourceId} not found`);
-        }
-        else if (resourceType === resource_type_enum_1.ResourceType.Business) {
-            const business = await this.businessRepository.findOneBy({ id: resourceId });
-            if (!business)
-                throw new common_1.NotFoundException(`Business with ID ${resourceId} not found`);
         }
         const existingPermission = await this.permissionRepository.findOneBy({
             user: { id: userId },
@@ -81,11 +81,11 @@ let PermissionsService = class PermissionsService {
             permissionType,
         });
     }
-    async assignSalesPermissionToBusiness(userId, businessId, permissionType = permission_type_enum_1.PermissionType.ViewSales) {
+    async assignSalesPermissionToCompany(userId, companyId, permissionType = permission_type_enum_1.PermissionType.ViewSales) {
         return this.assign({
             userId,
-            resourceId: businessId,
-            resourceType: resource_type_enum_1.ResourceType.Business,
+            resourceId: companyId,
+            resourceType: resource_type_enum_1.ResourceType.Company,
             permissionType,
         });
     }
@@ -133,7 +133,7 @@ exports.PermissionsService = PermissionsService = __decorate([
     __param(1, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
     __param(2, (0, typeorm_1.InjectRepository)(organization_entity_1.Organization)),
     __param(3, (0, typeorm_1.InjectRepository)(venue_entity_1.Venue)),
-    __param(4, (0, typeorm_1.InjectRepository)(business_entity_1.Business)),
+    __param(4, (0, typeorm_1.InjectRepository)(company_entity_1.Company)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,

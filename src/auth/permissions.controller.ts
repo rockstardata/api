@@ -49,9 +49,9 @@ export class PermissionsController {
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(Role.SuperAdmin)
-  @Post('sales/business/:businessId/user/:userId')
-  assignSalesPermissionToBusiness(
-    @Param('businessId') businessId: string,
+  @Post('sales/company/:companyId/user/:userId')
+  assignSalesPermissionToCompany(
+    @Param('companyId') companyId: string,
     @Param('userId') userId: string,
     @Query('permissionType') permissionType?: string,
   ) {
@@ -59,9 +59,9 @@ export class PermissionsController {
       ? (permissionType as PermissionType)
       : PermissionType.ViewSales;
     
-    return this.permissionsService.assignSalesPermissionToBusiness(
+    return this.permissionsService.assignSalesPermissionToCompany(
       +userId,
-      +businessId,
+      +companyId,
       permission,
     );
   }

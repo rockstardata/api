@@ -17,11 +17,14 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const user_entity_1 = require("./entities/user.entity");
 const typeorm_2 = require("typeorm");
+const sync_service_1 = require("../database/sync.service");
 const bcrypt = require("bcrypt");
 let UsersService = class UsersService {
     userRepository;
-    constructor(userRepository) {
+    syncService;
+    constructor(userRepository, syncService) {
         this.userRepository = userRepository;
+        this.syncService = syncService;
     }
     async create(createUserDto) {
         const { password, ...userData } = createUserDto;
@@ -29,7 +32,11 @@ let UsersService = class UsersService {
             ...userData,
             password: bcrypt.hashSync(password, 10),
         });
-        return this.userRepository.save(user);
+        const savedUser = await this.userRepository.save(user);
+        this.syncService.syncEntity('User', 'create', savedUser).catch(error => {
+            console.error('Failed to sync user creation to external DB:', error);
+        });
+        return savedUser;
     }
     findAll() {
         return this.userRepository.find();
@@ -58,17 +65,27 @@ let UsersService = class UsersService {
             },
         });
     }
-    update(id, updateUserDto) {
-        return `This action updates a #${id} user`;
+    async update(id, updateUserDto) {
+        await this.userRepository.update(id, updateUserDto);
+        const updatedUser = await this.userRepository.findOne({ where: { id } });
+        this.syncService.syncEntity('User', 'update', updatedUser).catch(error => {
+            console.error('Failed to sync user update to external DB:', error);
+        });
+        return updatedUser;
     }
-    remove(id) {
-        return `This action removes a #${id} user`;
+    async remove(id) {
+        await this.userRepository.delete(id);
+        this.syncService.syncEntity('User', 'delete', { id }).catch(error => {
+            console.error('Failed to sync user deletion to external DB:', error);
+        });
+        return `User with ID ${id} has been deleted`;
     }
 };
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
-    __metadata("design:paramtypes", [typeorm_2.Repository])
+    __metadata("design:paramtypes", [typeorm_2.Repository,
+        sync_service_1.SyncService])
 ], UsersService);
 //# sourceMappingURL=users.service.js.map

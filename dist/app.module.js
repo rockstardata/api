@@ -12,6 +12,7 @@ const database_module_1 = require("./database/database.module");
 const config_1 = require("@nestjs/config");
 const users_module_1 = require("./users/users.module");
 const organization_module_1 = require("./organization/organization.module");
+const company_module_1 = require("./company/company.module");
 const business_module_1 = require("./business/business.module");
 const staff_member_module_1 = require("./staff-member/staff-member.module");
 const venue_module_1 = require("./venue/venue.module");
@@ -35,6 +36,7 @@ exports.AppModule = AppModule = __decorate([
             database_module_1.DatabaseModule,
             users_module_1.UsersModule,
             organization_module_1.OrganizationModule,
+            company_module_1.CompanyModule,
             business_module_1.BusinessModule,
             staff_member_module_1.StaffMemberModule,
             venue_module_1.VenueModule,

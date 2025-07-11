@@ -14,6 +14,7 @@ const typeorm_1 = require("@nestjs/typeorm");
 const organization_entity_1 = require("./entities/organization.entity");
 const organizationUser_entity_1 = require("./entities/organizationUser.entity");
 const user_entity_1 = require("../users/entities/user.entity");
+const sync_service_1 = require("../database/sync.service");
 let OrganizationModule = class OrganizationModule {
 };
 exports.OrganizationModule = OrganizationModule;
@@ -21,7 +22,7 @@ exports.OrganizationModule = OrganizationModule = __decorate([
     (0, common_1.Module)({
         imports: [typeorm_1.TypeOrmModule.forFeature([organization_entity_1.Organization, organizationUser_entity_1.OrganizationUser, user_entity_1.User])],
         controllers: [organization_controller_1.OrganizationController],
-        providers: [organization_service_1.OrganizationService],
+        providers: [organization_service_1.OrganizationService, sync_service_1.SyncService],
     })
 ], OrganizationModule);
 //# sourceMappingURL=organization.module.js.map

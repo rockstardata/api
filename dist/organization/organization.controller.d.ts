@@ -8,6 +8,6 @@ export declare class OrganizationController {
     findAll(): Promise<import("./entities/organization.entity").Organization[]>;
     findOne(id: number): Promise<import("./entities/organization.entity").Organization>;
     update(id: number, updateOrganizationDto: UpdateOrganizationDto): Promise<import("./entities/organization.entity").Organization>;
-    remove(id: number): Promise<import("./entities/organization.entity").Organization>;
+    remove(id: number): Promise<void>;
     assignUserToOrganization(orgId: number, userId: number): Promise<import("./entities/organizationUser.entity").OrganizationUser>;
 }

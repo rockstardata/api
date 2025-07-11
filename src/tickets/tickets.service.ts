@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-//import { Sale } from 'src/sales/entities/sale.entity';
 import { Venue } from 'src/venue/entities/venue.entity';
 import { Repository } from 'typeorm';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { Ticket } from './entities/ticket.entity';
+import { SyncService } from '../database/sync.service';
 
 @Injectable()
 export class TicketsService {
@@ -13,12 +13,15 @@ export class TicketsService {
     private readonly ticketRepository: Repository<Ticket>,
     @InjectRepository(Venue)
     private readonly venueRepository: Repository<Venue>,
+    private readonly syncService: SyncService,
   ) {}
 
   async create(createTicketDto: CreateTicketDto): Promise<Ticket> {
     const { venueId, sales, ...ticketData } = createTicketDto;
 
-    const venue = await this.venueRepository.findOneBy({ id: venueId });
+    const venue = await this.venueRepository.findOne({
+      where: { id: venueId },
+    });
     if (!venue) {
       throw new NotFoundException(`Venue with ID "${venueId}" not found`);
     }
@@ -26,11 +29,18 @@ export class TicketsService {
     const ticket = this.ticketRepository.create({
       ...ticketData,
       venue,
-      sales: sales, // TypeORM creará las entidades Sale a partir de los objetos
+      sales: sales,
     });
 
-    // Al guardar el ticket, las ventas se guardarán automáticamente por la cascada
-    return this.ticketRepository.save(ticket);
+    const savedTicket = await this.ticketRepository.save(ticket);
+
+    this.syncService
+      .syncEntity('Ticket', 'create', savedTicket)
+      .catch((error) => {
+        console.error('Failed to sync ticket creation to external DB:', error);
+      });
+
+    return savedTicket;
   }
 
   findAll() {

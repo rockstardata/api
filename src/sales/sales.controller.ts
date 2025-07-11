@@ -29,18 +29,11 @@ export class SalesController {
 
   @Get('summary')
   getSalesSummary(
-    @Query('businessId') businessId?: string,
     @Query('venueId') venueId?: string,
   ) {
     return this.salesService.getSalesSummary(
-      businessId ? parseInt(businessId) : undefined,
       venueId ? parseInt(venueId) : undefined,
     );
-  }
-
-  @Get('business/:businessId')
-  findByBusiness(@Param('businessId') businessId: string) {
-    return this.salesService.findByBusiness(+businessId);
   }
 
   @Get('venue/:venueId')

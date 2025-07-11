@@ -1,4 +1,4 @@
-import { Business } from 'src/business/entities/business.entity';
+import { Venue } from 'src/venue/entities/venue.entity';
 import { User } from 'src/users/entities/user.entity';
 export declare enum StaffRole {
     MANAGER = "manager",
@@ -15,10 +15,10 @@ export declare class StaffMember {
     position: string;
     role: StaffRole;
     isActive: boolean;
-    hireDate: Date;
+    hireDate: Date | null;
     salary: number;
     createdAt: Date;
     updatedAt: Date;
-    business: Business;
+    venue: Venue;
     user: User;
 }

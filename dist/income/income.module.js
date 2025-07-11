@@ -8,19 +8,25 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.IncomeModule = void 0;
 const common_1 = require("@nestjs/common");
+const typeorm_1 = require("@nestjs/typeorm");
 const income_service_1 = require("./income.service");
 const income_controller_1 = require("./income.controller");
-const auth_module_1 = require("../auth/auth.module");
-const typeorm_1 = require("@nestjs/typeorm");
-const user_permission_entity_1 = require("../auth/entities/user-permission.entity");
+const income_entity_1 = require("./entities/income.entity");
+const venue_entity_1 = require("../venue/entities/venue.entity");
+const sale_entity_1 = require("../sales/entities/sale.entity");
+const user_entity_1 = require("../users/entities/user.entity");
+const sync_service_1 = require("../database/sync.service");
 let IncomeModule = class IncomeModule {
 };
 exports.IncomeModule = IncomeModule;
 exports.IncomeModule = IncomeModule = __decorate([
     (0, common_1.Module)({
-        imports: [auth_module_1.AuthModule, typeorm_1.TypeOrmModule.forFeature([user_permission_entity_1.UserPermission])],
+        imports: [
+            typeorm_1.TypeOrmModule.forFeature([income_entity_1.Income, venue_entity_1.Venue, sale_entity_1.Sale, user_entity_1.User]),
+        ],
         controllers: [income_controller_1.IncomeController],
-        providers: [income_service_1.IncomeService],
+        providers: [income_service_1.IncomeService, sync_service_1.SyncService],
+        exports: [income_service_1.IncomeService],
     })
 ], IncomeModule);
 //# sourceMappingURL=income.module.js.map
