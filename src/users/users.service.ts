@@ -4,6 +4,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
+import { SyncService } from '../database/sync.service';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -11,14 +12,22 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) {}
+    private readonly syncService: SyncService,
+  ) { }
   async create(createUserDto: CreateUserDto) {
     const { password, ...userData } = createUserDto;
     const user = this.userRepository.create({
       ...userData,
-      password: bcrypt.hashSync(password, 10), // Esto ahora funcionará
+      password: bcrypt.hashSync(password, 10),
     });
-    return this.userRepository.save(user);
+    const savedUser = await this.userRepository.save(user);
+
+    // Sincronizar con base de datos externa de forma asíncrona
+    this.syncService.syncEntity('User', 'create', savedUser).catch(error => {
+      console.error('Failed to sync user creation to external DB:', error);
+    });
+
+    return savedUser;
   }
 
   findAll(): Promise<User[]> {
@@ -52,11 +61,26 @@ export class UsersService {
     });
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    await this.userRepository.update(id, updateUserDto);
+    const updatedUser = await this.userRepository.findOne({ where: { id } });
+
+    // Sincronizar con base de datos externa de forma asíncrona
+    this.syncService.syncEntity('User', 'update', updatedUser).catch(error => {
+      console.error('Failed to sync user update to external DB:', error);
+    });
+
+    return updatedUser;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: number) {
+    await this.userRepository.delete(id);
+
+    // Sincronizar eliminación con base de datos externa de forma asíncrona
+    this.syncService.syncEntity('User', 'delete', { id }).catch(error => {
+      console.error('Failed to sync user deletion to external DB:', error);
+    });
+
+    return `User with ID ${id} has been deleted`;
   }
 }

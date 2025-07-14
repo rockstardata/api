@@ -1,6 +1,5 @@
-import { Organization } from 'src/organization/entities/organization.entity';
+import { Company } from 'src/company/entities/company.entity';
 import { StaffMember } from 'src/staff-member/entities/staff-member.entity';
-import { Venue } from 'src/venue/entities/venue.entity';
 import { User } from 'src/users/entities/user.entity';
 import {
   Column,
@@ -47,15 +46,11 @@ export class Business {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @ManyToOne(() => Organization, (org) => org.businesses)
-  organization: Organization;
+  @ManyToOne(() => Company, (company) => company.businesses)
+  company: Company;
 
   @ManyToOne(() => User, { nullable: true })
   createdBy: User;
 
-  @OneToMany(() => StaffMember, (staff) => staff.business)
-  staffMembers: StaffMember[];
-
-  @OneToMany(() => Venue, (venue) => venue.business)
-  venues: Venue[];
+  // Removed staffMembers relation as StaffMember now relates to Venue instead of Business
 }

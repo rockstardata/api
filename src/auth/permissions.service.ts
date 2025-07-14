@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Organization } from 'src/organization/entities/organization.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Venue } from 'src/venue/entities/venue.entity';
-import { Business } from 'src/business/entities/business.entity';
+import { Company } from 'src/company/entities/company.entity';
 import { Repository } from 'typeorm';
 import { AssignPermissionDto } from './dto/assign-permission.dto';
 import { UserPermission } from './entities/user-permission.entity';
@@ -25,8 +25,8 @@ export class PermissionsService {
     private readonly organizationRepository: Repository<Organization>,
     @InjectRepository(Venue)
     private readonly venueRepository: Repository<Venue>,
-    @InjectRepository(Business)
-    private readonly businessRepository: Repository<Business>,
+    @InjectRepository(Company)
+    private readonly companyRepository: Repository<Company>,
   ) {}
 
   async assign(assignPermissionDto: AssignPermissionDto) {
@@ -44,14 +44,14 @@ export class PermissionsService {
         throw new NotFoundException(
           `Organization with ID ${resourceId} not found`,
         );
+    } else if (resourceType === ResourceType.Company) {
+      const company = await this.companyRepository.findOneBy({ id: resourceId });
+      if (!company)
+        throw new NotFoundException(`Company with ID ${resourceId} not found`);
     } else if (resourceType === ResourceType.Venue) {
       const venue = await this.venueRepository.findOneBy({ id: resourceId });
       if (!venue)
         throw new NotFoundException(`Venue with ID ${resourceId} not found`);
-    } else if (resourceType === ResourceType.Business) {
-      const business = await this.businessRepository.findOneBy({ id: resourceId });
-      if (!business)
-        throw new NotFoundException(`Business with ID ${resourceId} not found`);
     }
 
     const existingPermission = await this.permissionRepository.findOneBy({
@@ -86,15 +86,15 @@ export class PermissionsService {
     });
   }
 
-  async assignSalesPermissionToBusiness(
+  async assignSalesPermissionToCompany(
     userId: number,
-    businessId: number,
+    companyId: number,
     permissionType: PermissionType = PermissionType.ViewSales,
   ) {
     return this.assign({
       userId,
-      resourceId: businessId,
-      resourceType: ResourceType.Business,
+      resourceId: companyId,
+      resourceType: ResourceType.Company,
       permissionType,
     });
   }

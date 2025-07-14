@@ -1,7 +1,6 @@
-import { Sale } from 'src/sales/entities/sale.entity';
 import { Venue } from 'src/venue/entities/venue.entity';
 import { User } from 'src/users/entities/user.entity';
-import { Business } from 'src/business/entities/business.entity';
+import { Sale } from 'src/sales/entities/sale.entity';
 import {
   Column,
   CreateDateColumn,
@@ -57,9 +56,6 @@ export class Ticket {
 
   @ManyToOne(() => User, { nullable: true })
   createdBy: User;
-
-  @ManyToOne(() => Business, { nullable: true })
-  business: Business;
 
   @OneToMany(() => Sale, (sale) => sale.ticket, { cascade: true })
   sales: Sale[];
