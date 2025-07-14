@@ -36,14 +36,14 @@ export class BusinessService {
 
   async findAll(): Promise<Business[]> {
     return await this.businessRepository.find({
-      relations: ['company', 'createdBy', 'staffMembers'],
+      relations: ['company', 'createdBy'],
     });
   }
 
   async findOne(id: number): Promise<Business> {
     const business = await this.businessRepository.findOne({
       where: { id },
-      relations: ['company', 'createdBy', 'staffMembers'],
+      relations: ['company', 'createdBy'],
     });
     
     if (!business) {
@@ -79,7 +79,7 @@ export class BusinessService {
   async findByCompany(companyId: number): Promise<Business[]> {
     return await this.businessRepository.find({
       where: { company: { id: companyId } },
-      relations: ['company', 'createdBy', 'staffMembers'],
+      relations: ['company', 'createdBy'],
     });
   }
 }

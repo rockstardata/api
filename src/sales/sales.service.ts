@@ -80,51 +80,62 @@ export class SalesService {
   }
 
   async findAll(userId?: number): Promise<Sale[]> {
+    // Si no hay userId, retornar todas las ventas sin verificación de permisos
     if (!userId) {
       return await this.saleRepository.find({
         relations: ['ticket', 'createdBy', 'venue'],
+        take: 100, // Limitar a 100 registros para evitar sobrecarga
+        order: { createdAt: 'DESC' }, // Ordenar por fecha de creación descendente
       });
     }
 
-    // Obtener permisos del usuario
-    const userPermissions = await this.permissionsService.getUserPermissions(userId);
-    
-    // Si no tiene permisos específicos, retornar solo sus propias ventas
-    const salesPermissions = userPermissions.filter(
-      p => p.permissionType === PermissionType.ViewSales
-    );
+    // Si hay userId, verificar permisos
+    try {
+      const userPermissions = await this.permissionsService.getUserPermissions(userId);
+      
+      // Si no tiene permisos específicos, retornar solo sus propias ventas
+      const salesPermissions = userPermissions.filter(
+        p => p.permissionType === PermissionType.ViewSales
+      );
 
-    if (salesPermissions.length === 0) {
+      if (salesPermissions.length === 0) {
+        return await this.findByUser(userId);
+      }
+
+      // Construir query basado en permisos
+      const queryBuilder = this.saleRepository.createQueryBuilder('sale')
+        .leftJoinAndSelect('sale.ticket', 'ticket')
+        .leftJoinAndSelect('sale.createdBy', 'createdBy')
+        .leftJoinAndSelect('sale.venue', 'venue')
+        .take(100) // Limitar resultados
+        .orderBy('sale.createdAt', 'DESC');
+
+      const conditions: string[] = [];
+      const parameters: any = {};
+
+      for (const permission of salesPermissions) {
+        if (permission.resourceType === ResourceType.Organization) {
+          conditions.push('venue.company.organizationId = :orgId');
+          parameters['orgId'] = permission.resourceId;
+        } else if (permission.resourceType === ResourceType.Company) {
+          conditions.push('venue.companyId = :companyId');
+          parameters['companyId'] = permission.resourceId;
+        } else if (permission.resourceType === ResourceType.Venue) {
+          conditions.push('sale.venueId = :venueId');
+          parameters['venueId'] = permission.resourceId;
+        }
+      }
+
+      if (conditions.length > 0) {
+        queryBuilder.where(`(${conditions.join(' OR ')})`, parameters);
+      }
+
+      return await queryBuilder.getMany();
+    } catch (error) {
+      // Si hay error en permisos, retornar solo las ventas del usuario
+      console.error('Error checking permissions, falling back to user sales:', error);
       return await this.findByUser(userId);
     }
-
-    // Construir query basado en permisos
-    const queryBuilder = this.saleRepository.createQueryBuilder('sale')
-      .leftJoinAndSelect('sale.ticket', 'ticket')
-      .leftJoinAndSelect('sale.createdBy', 'createdBy')
-      .leftJoinAndSelect('sale.venue', 'venue');
-
-    const conditions: string[] = [];
-    const parameters: any = {};
-
-    for (const permission of salesPermissions) {
-      if (permission.resourceType === ResourceType.Organization) {
-        conditions.push('venue.company.organizationId = :orgId');
-        parameters['orgId'] = permission.resourceId;
-      } else if (permission.resourceType === ResourceType.Company) {
-        conditions.push('venue.companyId = :companyId');
-        parameters['companyId'] = permission.resourceId;
-      } else if (permission.resourceType === ResourceType.Venue) {
-        conditions.push('sale.venueId = :venueId');
-        parameters['venueId'] = permission.resourceId;
-      }
-    }
-
-    if (conditions.length > 0) {
-      queryBuilder.where(`(${conditions.join(' OR ')})`, parameters);
-    }
-
-    return await queryBuilder.getMany();
   }
 
   async findOne(id: number, userId?: number): Promise<Sale> {
