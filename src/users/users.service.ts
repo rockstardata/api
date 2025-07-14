@@ -6,6 +6,8 @@ import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { SyncService } from '../database/sync.service';
 import * as bcrypt from 'bcrypt';
+import { OrganizationUser } from 'src/organization/entities/organizationUser.entity';
+import { Role } from 'src/role/entities/role.entity';
 
 @Injectable()
 export class UsersService {
@@ -13,6 +15,10 @@ export class UsersService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly syncService: SyncService,
+    @InjectRepository(OrganizationUser)
+    private readonly organizationUserRepository: Repository<OrganizationUser>,
+    @InjectRepository(Role)
+    private readonly roleRepository: Repository<Role>,
   ) { }
   async create(createUserDto: CreateUserDto) {
     const { password, ...userData } = createUserDto;
@@ -23,6 +29,39 @@ export class UsersService {
     const savedUser = await this.userRepository.save(user);
 
     // Sincronizar con base de datos externa de forma asíncrona
+    this.syncService.syncEntity('User', 'create', savedUser).catch(error => {
+      console.error('Failed to sync user creation to external DB:', error);
+    });
+
+    return savedUser;
+  }
+
+  async createSuperAdmin(createUserDto: CreateUserDto, organizationId: number) {
+    // 1. Crear usuario
+    const { password, ...userData } = createUserDto;
+    const user = this.userRepository.create({
+      ...userData,
+      password: bcrypt.hashSync(password, 10),
+    });
+    const savedUser = await this.userRepository.save(user);
+
+    // 2. Buscar el rol SuperAdmin
+    let superAdminRole = await this.roleRepository.findOne({ where: { name: 'superadmin' } });
+    if (!superAdminRole) {
+      // Si no existe, lo creamos
+      superAdminRole = this.roleRepository.create({ name: 'superadmin' });
+      await this.roleRepository.save(superAdminRole);
+    }
+
+    // 3. Crear relación OrganizationUser
+    const orgUser = this.organizationUserRepository.create({
+      user: savedUser,
+      organization: { id: organizationId } as any,
+      role: superAdminRole,
+    });
+    await this.organizationUserRepository.save(orgUser);
+
+    // 4. Sincronizar con base externa
     this.syncService.syncEntity('User', 'create', savedUser).catch(error => {
       console.error('Failed to sync user creation to external DB:', error);
     });

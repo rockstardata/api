@@ -34,18 +34,18 @@ export class SyncService {
 
     try {
       const externalRepo = this.externalDataSource.getRepository(entityName);
-      
+
       switch (operation) {
         case 'create':
           await externalRepo.save(data);
           this.logger.log(`Synced ${entityName} creation to external DB`);
           break;
-          
+
         case 'update':
           await externalRepo.update(data.id, data);
           this.logger.log(`Synced ${entityName} update to external DB`);
           break;
-          
+
         case 'delete':
           await externalRepo.delete(data.id);
           this.logger.log(`Synced ${entityName} deletion to external DB`);
@@ -63,14 +63,18 @@ export class SyncService {
   /**
    * Sincroniza múltiples entidades en una transacción
    */
-  async syncMultipleEntities(operations: Array<{
-    entityName: string;
-    operation: 'create' | 'update' | 'delete';
-    data: any;
-  }>): Promise<void> {
+  async syncMultipleEntities(
+    operations: Array<{
+      entityName: string;
+      operation: 'create' | 'update' | 'delete';
+      data: any;
+    }>,
+  ): Promise<void> {
     // Verificar si la base de datos externa está configurada
     if (!this.externalDataSource) {
-      this.logger.debug('External database not configured, skipping multiple sync');
+      this.logger.debug(
+        'External database not configured, skipping multiple sync',
+      );
       return;
     }
 
@@ -82,7 +86,7 @@ export class SyncService {
       for (const op of operations) {
         await this.syncEntity(op.entityName, op.operation, op.data);
       }
-      
+
       await queryRunner.commitTransaction();
       this.logger.log('Successfully synced multiple entities to external DB');
     } catch (error) {
@@ -110,4 +114,4 @@ export class SyncService {
       return false;
     }
   }
-} 
+}

@@ -2,7 +2,14 @@ import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-
+//import { execSync } from 'child_process';
+// try {
+//   console.log('⏳ Sincronizando datos antes de iniciar la app...');
+//   execSync('node scripts/sync-all.js', { stdio: 'inherit' });
+//   console.log('✅ Sincronización de datos completada.');
+// } catch (error) {
+//   console.error('❌ Error al sincronizar datos:', error.message);
+// }
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 

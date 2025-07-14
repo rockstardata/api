@@ -1,20 +1,29 @@
-import { IsNotEmpty, IsNumber, IsString, Min, IsOptional, IsEnum } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  Min,
+  IsOptional,
+  IsEnum,
+} from 'class-validator';
 import { PaymentMethod, SaleStatus } from '../entities/sale.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateSaleDto {
   // Información del producto
+  @ApiProperty()
   @IsString()
   @IsNotEmpty()
   productName: string;
-
+  @ApiProperty()
   @IsNumber()
   @Min(1)
   quantity: number;
-
+  @ApiProperty()
   @IsNumber()
   @Min(0)
   price: number;
-
+  @ApiProperty()
   @IsNumber()
   @Min(0)
   totalAmount: number;
@@ -35,7 +44,7 @@ export class CreateSaleDto {
   notes?: string;
 
   // RELACIONES - Solo necesitas especificar UNA de estas opciones:
-  
+
   // Opción 1: Si quieres asociar la venta a un ticket existente
   @IsNumber()
   @IsOptional()

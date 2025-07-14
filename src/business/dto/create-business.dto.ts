@@ -1,14 +1,22 @@
-import { IsNotEmpty, IsString, IsOptional, IsEmail, IsPhoneNumber } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import {
+  IsNotEmpty,
+  IsString,
+  IsOptional,
+  IsEmail,
+  IsPhoneNumber,
+} from 'class-validator';
 
 export class CreateBusinessDto {
+  @ApiProperty()
   @IsString()
   @IsNotEmpty()
   name: string;
-
+  @ApiProperty()
   @IsString()
   @IsOptional()
   description?: string;
-
+  @ApiProperty()
   @IsString()
   @IsOptional()
   address?: string;

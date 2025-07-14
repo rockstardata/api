@@ -1,19 +1,29 @@
-import { IsNotEmpty, IsString, IsOptional, IsNumber, IsEnum, IsDateString, IsBoolean } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsEnum,
+  IsDateString,
+  IsBoolean,
+} from 'class-validator';
 import { IncomeCategory, IncomeStatus } from '../entities/income.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateIncomeDto {
+  @ApiProperty()
   @IsString()
   @IsNotEmpty()
   name: string;
-
+  @ApiProperty()
   @IsString()
   @IsOptional()
   description?: string;
-
+  @ApiProperty()
   @IsNumber()
   @IsNotEmpty()
   amount: number;
-
+  @ApiProperty()
   @IsEnum(IncomeCategory)
   @IsOptional()
   category?: IncomeCategory;
