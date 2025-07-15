@@ -291,6 +291,36 @@ export class SalesService {
     return await queryBuilder.getMany();
   }
 
+  async getSalesFromYearStartToNextMonth(): Promise<Sale[]> {
+    const startDate = new Date(new Date().getFullYear(), 0, 1); // 1 de enero del año actual
+    const nextMonth = new Date();
+    nextMonth.setMonth(nextMonth.getMonth() + 1, 1); // Primer día del mes siguiente
+    nextMonth.setHours(0, 0, 0, 0);
+
+    return this.saleRepository.createQueryBuilder('sale')
+      .where('sale.createdAt >= :startDate', { startDate })
+      .andWhere('sale.createdAt < :nextMonth', { nextMonth })
+      .take(20)
+      .getMany();
+  }
+
+  async getSalesByMonthAndYear(month: number, year: number, page: number = 1): Promise<Sale[]> {
+    // Calcular el primer día del mes
+    const startDate = new Date(year, month - 1, 1);
+    // Calcular el primer día del mes siguiente
+    const endDate = new Date(year, month, 1);
+    // Paginación
+    const take = 10;
+    const skip = (page - 1) * take;
+
+    return this.saleRepository.createQueryBuilder('sale')
+      .where('sale.createdAt >= :startDate', { startDate })
+      .andWhere('sale.createdAt < :endDate', { endDate })
+      .take(take)
+      .skip(skip)
+      .getMany();
+  }
+
   private async canAccessSale(userId: number, sale: Sale): Promise<boolean> {
     // Si el usuario creó la venta, puede acceder
     if (sale.createdBy?.id === userId) {
