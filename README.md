@@ -365,6 +365,7 @@ npm run test:e2e           # Ejecutar tests e2e
 npm run test:cov           # Tests con cobertura
 npm run lint               # Linting del código
 npm run lint:fix           # Linting con auto-fix
+node scripts/update-sale-dates.js
 ```
 
 ## 🤝 Contribución
