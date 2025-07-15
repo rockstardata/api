@@ -107,4 +107,34 @@ export class DatabaseController {
       };
     }
   }
+
+  @Post('update-sale-dates')
+  async updateSaleDates() {
+    return new Promise((resolve) => {
+      const { exec } = require('child_process');
+      exec(
+        'node scripts/update-sale-dates.js',
+        { cwd: process.cwd() },
+        (error, stdout, stderr) => {
+          if (error) {
+            this.logger.error('Error ejecutando update-sale-dates.js', error);
+            resolve({
+              success: false,
+              message: 'Error actualizando fechas de sales',
+              error: error.message,
+              stderr,
+              stdout,
+            });
+          } else {
+            resolve({
+              success: true,
+              message: 'Fechas de sales actualizadas correctamente',
+              stdout,
+              stderr,
+            });
+          }
+        },
+      );
+    });
+  }
 }
