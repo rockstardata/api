@@ -7,11 +7,13 @@ import { Ticket } from 'src/tickets/entities/ticket.entity';
 import { Venue } from 'src/venue/entities/venue.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { SyncService } from '../database/sync.service';
+import { IncomeModule } from '../income/income.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Sale, Ticket, Venue]),
-    AuthModule
+    AuthModule,
+    IncomeModule
   ],
   controllers: [SalesController],
   providers: [SalesService, SyncService],

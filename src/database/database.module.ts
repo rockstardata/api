@@ -3,7 +3,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SyncService } from './sync.service';
 import { DatabaseController } from './database.controller';
+import { DatabaseTestController } from './database-test.controller';
 import { UsersModule } from '../users/users.module';
+import { VenueModule } from '../venue/venue.module';
+import { IncomeModule } from '../income/income.module';
+import { SalesModule } from '../sales/sales.module';
 
 @Module({
   imports: [
@@ -46,8 +50,11 @@ import { UsersModule } from '../users/users.module';
         ]
       : []),
     UsersModule,
+    VenueModule,
+    IncomeModule,
+    SalesModule,
   ],
-  controllers: [DatabaseController],
+  controllers: [DatabaseController, DatabaseTestController],
   providers: [SyncService],
   exports: [SyncService],
 })

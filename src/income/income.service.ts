@@ -170,6 +170,10 @@ export class IncomeService {
     });
   }
 
+  async findBySaleId(saleId: number) {
+    return this.incomeRepository.findOne({ where: { sale: { id: saleId } } });
+  }
+
   async getTotalIncomeByVenue(venueId: number, startDate?: Date, endDate?: Date) {
     const query = this.incomeRepository
       .createQueryBuilder('income')
@@ -202,5 +206,138 @@ export class IncomeService {
     income.status = IncomeStatus.RECEIVED;
     income.receivedBy = { id: userId } as User;
     return this.incomeRepository.save(income);
+  }
+
+  async getIncomeOverview(venueId: number | undefined, year: number, month: number) {
+    // Fechas del mes actual
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 1);
+
+    // Fechas del mismo mes del año anterior
+    const prevYear = year - 1;
+    const prevStartDate = new Date(prevYear, month - 1, 1);
+    const prevEndDate = new Date(prevYear, month, 1);
+
+    // Query para ingresos actuales
+    const currentQuery = this.incomeRepository.createQueryBuilder('income')
+      .select('SUM(income.amount)', 'total')
+      .where('income.date >= :startDate AND income.date < :endDate', { startDate, endDate });
+
+    // Query para ingresos año anterior
+    const prevQuery = this.incomeRepository.createQueryBuilder('income')
+      .select('SUM(income.amount)', 'total')
+      .where('income.date >= :prevStartDate AND income.date < :prevEndDate', { prevStartDate, prevEndDate });
+
+    if (venueId) {
+      currentQuery.andWhere('income.venue = :venueId', { venueId });
+      prevQuery.andWhere('income.venue = :venueId', { venueId });
+    }
+
+    const current = await currentQuery.getRawOne();
+    const previous = await prevQuery.getRawOne();
+
+    const totalCurrent = Number(current.total) || 0;
+    const totalPrevious = Number(previous.total) || 0;
+    const growth = totalPrevious > 0 ? ((totalCurrent - totalPrevious) / totalPrevious) * 100 : null;
+
+    return {
+      totalCurrent,
+      totalPrevious,
+      growthPercent: growth !== null ? Math.round(growth * 100) / 100 : null,
+    };
+  }
+
+  /**
+   * Obtiene todos los ingresos de un local en un rango de fechas específico
+   * @param venueId ID del local/restaurante
+   * @param startDate Fecha de inicio (YYYY-MM-DD)
+   * @param endDate Fecha de fin (YYYY-MM-DD)
+   * @param page Número de página (opcional, por defecto 1)
+   * @param limit Límite de registros por página (opcional, por defecto 50)
+   * @returns Lista paginada de ingresos con sus relaciones
+   */
+  async getIncomeByDateRange(
+    venueId: number,
+    startDate: string,
+    endDate: string,
+    page: number = 1,
+    limit: number = 50
+  ) {
+    // Convertir fechas string a Date
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    // Validar fechas
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      throw new Error('Fechas inválidas. Use formato YYYY-MM-DD');
+    }
+    
+    if (start > end) {
+      throw new Error('La fecha de inicio debe ser menor o igual a la fecha de fin');
+    }
+
+    // Calcular offset para paginación
+    const offset = (page - 1) * limit;
+
+    // Query principal con relaciones
+    const query = this.incomeRepository.createQueryBuilder('income')
+      .leftJoinAndSelect('income.venue', 'venue')
+      .leftJoinAndSelect('income.sale', 'sale')
+      .leftJoinAndSelect('income.createdBy', 'createdBy')
+      .leftJoinAndSelect('income.receivedBy', 'receivedBy')
+      .where('income.venue.id = :venueId', { venueId })
+      .andWhere('income.date >= :startDate', { startDate: start })
+      .andWhere('income.date <= :endDate', { endDate: end })
+      .orderBy('income.date', 'DESC')
+      .addOrderBy('income.id', 'DESC')
+      .skip(offset)
+      .take(limit);
+
+    // Ejecutar query
+    const [incomes, total] = await query.getManyAndCount();
+
+    // Calcular total de ingresos en el rango
+    const totalAmountQuery = this.incomeRepository.createQueryBuilder('income')
+      .select('SUM(income.amount)', 'total')
+      .where('income.venue.id = :venueId', { venueId })
+      .andWhere('income.date >= :startDate', { startDate: start })
+      .andWhere('income.date <= :endDate', { endDate: end });
+
+    const totalAmountResult = await totalAmountQuery.getRawOne();
+    const totalAmount = Number(totalAmountResult?.total) || 0;
+
+    // Calcular estadísticas por categoría
+    const categoryStatsQuery = this.incomeRepository.createQueryBuilder('income')
+      .select('income.category', 'category')
+      .addSelect('COUNT(*)', 'count')
+      .addSelect('SUM(income.amount)', 'total')
+      .where('income.venue.id = :venueId', { venueId })
+      .andWhere('income.date >= :startDate', { startDate: start })
+      .andWhere('income.date <= :endDate', { endDate: end })
+      .groupBy('income.category')
+      .orderBy('SUM(income.amount)', 'DESC');
+
+    const categoryStats = await categoryStatsQuery.getRawMany();
+
+    return {
+      incomes,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNext: page < Math.ceil(total / limit),
+        hasPrev: page > 1
+      },
+      summary: {
+        totalAmount,
+        totalRecords: total,
+        dateRange: {
+          start: startDate,
+          end: endDate
+        },
+        categoryStats
+      }
+    };
   }
 }

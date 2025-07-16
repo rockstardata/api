@@ -160,6 +160,44 @@ export class IncomeController {
     return this.incomeService.getTotalIncomeByVenue(+venueId, start, end);
   }
 
+  @Get('overview')
+  @ApiQuery({ name: 'venueId', required: false, description: 'ID del restaurante (opcional)' })
+  @ApiQuery({ name: 'year', required: true, example: 2024 })
+  @ApiQuery({ name: 'month', required: true, example: 6 })
+  async getIncomeOverview(
+    @Query('venueId') venueId?: string,
+    @Query('year') year?: string,
+    @Query('month') month?: string,
+  ) {
+    return this.incomeService.getIncomeOverview(
+      venueId ? +venueId : undefined,
+      Number(year),
+      Number(month)
+    );
+  }
+
+  @Get('venue/:venueId/date-range')
+  @ApiOperation({ summary: 'Obtener ingresos de un local en un rango de fechas' })
+  @ApiQuery({ name: 'startDate', required: true, description: 'Fecha de inicio (YYYY-MM-DD)', example: '2024-01-01' })
+  @ApiQuery({ name: 'endDate', required: true, description: 'Fecha de fin (YYYY-MM-DD)', example: '2024-12-31' })
+  @ApiQuery({ name: 'page', required: false, description: 'Número de página', example: 1 })
+  @ApiQuery({ name: 'limit', required: false, description: 'Registros por página', example: 50 })
+  async getIncomeByDateRange(
+    @Param('venueId') venueId: string,
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.incomeService.getIncomeByDateRange(
+      +venueId,
+      startDate,
+      endDate,
+      page ? +page : 1,
+      limit ? +limit : 50
+    );
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get income by ID' })
   @ApiResponse({
@@ -239,5 +277,23 @@ export class IncomeController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getIncomeStatuses() {
     return Object.values(IncomeStatus);
+  }
+
+  // Endpoint de prueba sin autenticación
+  @Get('test/summary')
+  @ApiOperation({ summary: 'Test income summary without authentication' })
+  @ApiQuery({ name: 'venueId', required: false, description: 'ID del restaurante (opcional)' })
+  @ApiQuery({ name: 'year', required: true, example: 2024 })
+  @ApiQuery({ name: 'month', required: true, example: 6 })
+  async testIncomeSummary(
+    @Query('venueId') venueId?: string,
+    @Query('year') year?: string,
+    @Query('month') month?: string,
+  ) {
+    return this.incomeService.getIncomeOverview(
+      venueId ? +venueId : undefined,
+      Number(year),
+      Number(month)
+    );
   }
 }

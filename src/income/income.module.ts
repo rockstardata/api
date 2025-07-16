@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { IncomeService } from './income.service';
 import { IncomeController } from './income.controller';
+import { IncomeTestController } from './income-test.controller';
 import { Income } from './entities/income.entity';
 import { Venue } from 'src/venue/entities/venue.entity';
 import { Sale } from 'src/sales/entities/sale.entity';
@@ -12,7 +13,7 @@ import { SyncService } from '../database/sync.service';
   imports: [
     TypeOrmModule.forFeature([Income, Venue, Sale, User]),
   ],
-  controllers: [IncomeController],
+  controllers: [IncomeController, IncomeTestController],
   providers: [IncomeService, SyncService],
   exports: [IncomeService],
 })

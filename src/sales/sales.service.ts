@@ -11,6 +11,8 @@ import { PermissionsService } from 'src/auth/permissions.service';
 import { PermissionType } from 'src/auth/enums/permission-type.enum';
 import { ResourceType } from 'src/auth/enums/resource-type.enum';
 import { SyncService } from '../database/sync.service';
+import { IncomeService } from '../income/income.service';
+import { IncomeCategory, IncomeStatus } from '../income/entities/income.entity';
 
 @Injectable()
 export class SalesService {
@@ -23,6 +25,7 @@ export class SalesService {
     private readonly venueRepository: Repository<Venue>,
     private readonly permissionsService: PermissionsService,
     private readonly syncService: SyncService,
+    private readonly incomeService: IncomeService,
   ) {}
 
   async create(createSaleDto: CreateSaleDto, userId?: number): Promise<Sale> {
@@ -70,6 +73,24 @@ export class SalesService {
     
     const sale = this.saleRepository.create(saleData);
     const savedSale = await this.saleRepository.save(sale);
+    
+    // Crear ingreso automáticamente asociado a la venta
+    try {
+      const incomeData = {
+        name: `Venta: ${savedSale.productName}`,
+        amount: savedSale.totalAmount,
+        category: IncomeCategory.TICKET_SALES, // Puedes ajustar según el tipo de producto
+        status: IncomeStatus.RECEIVED,
+        date: savedSale.createdAt.toISOString().split('T')[0], // Formato YYYY-MM-DD
+        venueId: savedSale.venue?.id,
+        saleId: savedSale.id, // Vincular con la venta
+      };
+      
+      await this.incomeService.create(incomeData, userId || 1);
+    } catch (error) {
+      console.error('Error creating income from sale:', error);
+      // No lanzar error para no afectar la creación de la venta
+    }
     
     // Sincronizar con base de datos externa de forma asíncrona
     this.syncService.syncEntity('Sale', 'create', savedSale).catch(error => {
