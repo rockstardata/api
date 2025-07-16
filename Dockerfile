@@ -1,23 +1,23 @@
-# Usar Node.js 20 como base (mejor soporte para crypto)
-FROM node:20-alpine
+# Usa una imagen base de Node.js
+FROM node:lts-alpine3.21
 
-# Establecer directorio de trabajo
-WORKDIR /app
+# Crea el directorio de la app
+WORKDIR /usr/src/app
 
-# Copiar archivos de dependencias
+# Copia los archivos de configuración del package
 COPY package*.json ./
-COPY tsconfig*.json ./
-COPY nest-cli.json ./
 
-# Instalar dependencias
-RUN npm ci
+# Instala las dependencias
+RUN npm install
 
-# Copiar código fuente
-COPY src/ ./src/
-COPY scripts/ ./scripts/
+# Copia el código fuente
+COPY . .
 
-# Exponer puerto
+# Compila TypeScript (si es necesario)
+# RUN npm run build
+
+# Puerto expuesto
 EXPOSE 3000
 
-# Comando por defecto
-CMD ["npm", "run", "start:dev"] 
+# Comando para iniciar la aplicación
+# CMD ["npm", "start"]
