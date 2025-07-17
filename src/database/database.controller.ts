@@ -3,6 +3,8 @@ import {
   Logger,
   Optional,
   Post,
+  Get,
+  Query,
 } from '@nestjs/common';
 import { SyncService } from './sync.service';
 import { InjectDataSource } from '@nestjs/typeorm';
@@ -263,5 +265,109 @@ export class DatabaseController {
       alreadyLinked,
       totalSales: sales.length,
     };
+  }
+
+  @Get('kpi/beneficio-estimado')
+  async getBeneficioEstimado(
+    @Query('company_name') companyName: string,
+    @Query('year') year: string,
+    @Query('week_number') weekNumber: string,
+  ) {
+    if (!companyName || !year || !weekNumber) {
+      return { success: false, message: 'Faltan parámetros requeridos: company_name, year, week_number' };
+    }
+    const sql = 'SELECT * from dwh.fn_estimated_profit_by_company_and_period($1, $2, $3, null)';
+    return this.syncService.queryExternalKpi(sql, [companyName, year, weekNumber]);
+  }
+
+  @Get('kpi/ingresos-totales')
+  async getIngresosTotales(
+    @Query('company_name') companyName: string,
+    @Query('year') year: string,
+    @Query('week_number') weekNumber: string,
+  ) {
+    if (!companyName || !year || !weekNumber) {
+      return { success: false, message: 'Faltan parámetros requeridos: company_name, year, week_number' };
+    }
+    const sql = 'SELECT * from dwh.fn_total_income_by_period($1, $2, $3, null)';
+    return this.syncService.queryExternalKpi(sql, [companyName, year, weekNumber]);
+  }
+
+  @Get('kpi/gastos-totales')
+  async getGastosTotales(
+    @Query('company_name') companyName: string,
+    @Query('year') year: string,
+    @Query('week_number') weekNumber: string,
+  ) {
+    if (!companyName || !year || !weekNumber) {
+      return { success: false, message: 'Faltan parámetros requeridos: company_name, year, week_number' };
+    }
+    const sql = 'SELECT * from dwh.get_debit_variation_by_company_and_period($1, $2, $3, null)';
+    return this.syncService.queryExternalKpi(sql, [companyName, year, weekNumber]);
+  }
+
+  @Get('kpi/beneficio-estimado-por-local')
+  async getBeneficioEstimadoPorLocal(
+    @Query('company_name') companyName: string,
+    @Query('year') year: string,
+    @Query('week_number') weekNumber: string,
+  ) {
+    if (!companyName || !year || !weekNumber) {
+      return { success: false, message: 'Faltan parámetros requeridos: company_name, year, week_number' };
+    }
+    const sql = 'SELECT * from dwh.fn_estimated_profit_by_venues_and_week($1, $2, $3)';
+    return this.syncService.queryExternalKpi(sql, [companyName, year, weekNumber]);
+  }
+
+  @Get('kpi/gastos-totales-por-categoria')
+  async getGastosTotalesPorCategoria(
+    @Query('company_name') companyName: string,
+    @Query('year') year: string,
+    @Query('month_number') monthNumber: string,
+  ) {
+    if (!companyName || !year || !monthNumber) {
+      return { success: false, message: 'Faltan parámetros requeridos: company_name, year, month_number' };
+    }
+    const sql = 'SELECT * from dwh.get_debit_variation_by_company_and_period($1, $2, null, $3)';
+    return this.syncService.queryExternalKpi(sql, [companyName, year, monthNumber]);
+  }
+
+  @Get('kpi/ingresos-por-turno')
+  async getIngresosPorTurno(
+    @Query('company_name') companyName: string,
+    @Query('year') year: string,
+    @Query('week_number') weekNumber: string,
+  ) {
+    if (!companyName || !year || !weekNumber) {
+      return { success: false, message: 'Faltan parámetros requeridos: company_name, year, week_number' };
+    }
+    const sql = 'SELECT * from dwh.fn_sales_comparison_by_section($1, $2, null, $3, null)';
+    return this.syncService.queryExternalKpi(sql, [companyName, year, weekNumber]);
+  }
+
+  @Get('kpi/ratio-personal')
+  async getRatioPersonal(
+    @Query('company_name') companyName: string,
+    @Query('year') year: string,
+    @Query('week_number') weekNumber: string,
+  ) {
+    if (!companyName || !year || !weekNumber) {
+      return { success: false, message: 'Faltan parámetros requeridos: company_name, year, week_number' };
+    }
+    const sql = 'SELECT * from dwh.fn_personnel_expense_ratio($1, $2, null, $3, null)';
+    return this.syncService.queryExternalKpi(sql, [companyName, year, weekNumber]);
+  }
+
+  @Get('kpi/comensales-totales')
+  async getComensalesTotales(
+    @Query('company_name') companyName: string,
+    @Query('week_number') weekNumber: string,
+    @Query('year') year: string,
+  ) {
+    if (!companyName || !weekNumber || !year) {
+      return { success: false, message: 'Faltan parámetros requeridos: company_name, week_number, year' };
+    }
+    const sql = 'SELECT * from dwh.fn_week_total_attendees($1, $2, $3)';
+    return this.syncService.queryExternalKpi(sql, [companyName, weekNumber, year]);
   }
 }

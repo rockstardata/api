@@ -1,6 +1,8 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { SyncService } from './sync.service';
 import { DatabaseController } from './database.controller';
 import { DatabaseTestController } from './database-test.controller';
@@ -9,6 +11,7 @@ import { VenueModule } from '../venue/venue.module';
 import { IncomeModule } from '../income/income.module';
 import { SalesModule } from '../sales/sales.module';
 
+console.log('EXTERNAL_DB_HOST en DatabaseModule:', process.env.EXTERNAL_DB_HOST);
 @Module({
   imports: [
     // Base de datos principal (tu configuración actual)
@@ -33,19 +36,23 @@ import { SalesModule } from '../sales/sales.module';
             name: 'external',
             imports: [ConfigModule],
             inject: [ConfigService],
-            useFactory: (configService: ConfigService) => ({
-              type: 'postgres', // Cambiar según tu BD externa
-              host: configService.get<string>('EXTERNAL_DB_HOST'),
-              port: configService.get<number>('EXTERNAL_DB_PORT'),
-              username: configService.get<string>('EXTERNAL_DB_USERNAME'),
-              password: configService.get<string>('EXTERNAL_DB_PASSWORD'),
-              database: configService.get<string>('EXTERNAL_DB_DATABASE'),
-              entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-              schema: 'dwh',
-              synchronize: false, // Importante: false para BD externa
-              logging: false,
-              ssl: configService.get<boolean>('EXTERNAL_DB_SSL', true),
-            }),
+            useFactory: (configService: ConfigService): TypeOrmModuleOptions => {
+              const config: TypeOrmModuleOptions = {
+                type: 'postgres',
+                host: configService.get<string>('EXTERNAL_DB_HOST'),
+                port: configService.get<number>('EXTERNAL_DB_PORT'),
+                username: configService.get<string>('EXTERNAL_DB_USERNAME'),
+                password: configService.get<string>('EXTERNAL_DB_PASSWORD'),
+                database: configService.get<string>('EXTERNAL_DB_DATABASE'),
+                entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+                schema: 'dwh',
+                synchronize: false, // Importante: false para BD externa
+                logging: false,
+                ssl: { rejectUnauthorized: false },
+              };
+              console.log('Creando conexión externa con:', config);
+              return config;
+            },
           }),
         ]
       : []),
@@ -56,6 +63,6 @@ import { SalesModule } from '../sales/sales.module';
   ],
   controllers: [DatabaseController, DatabaseTestController],
   providers: [SyncService],
-  exports: [SyncService],
+  exports: [SyncService, TypeOrmModule],
 })
 export class DatabaseModule {}

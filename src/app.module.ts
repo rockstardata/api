@@ -16,6 +16,8 @@ import { KpisModule } from './kpis/kpis.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { SalesModule } from './sales/sales.module';
 import { AuthModule } from './auth/auth.module';
+import { RecModule } from './rec/rec.module';
+
 
 @Module({
   imports: [
@@ -37,8 +39,10 @@ import { AuthModule } from './auth/auth.module';
     TicketsModule,
     SalesModule,
     AuthModule,
+    RecModule,
+
   ],
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule { }
