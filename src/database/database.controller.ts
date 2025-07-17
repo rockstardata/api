@@ -404,4 +404,23 @@ export class DatabaseController {
     const sql = 'SELECT * FROM dwh.fn_weekly_avg_ticket_by_venue($1, $2, $3)';
     return this.syncService.queryExternalKpi(sql, [companyName, weekNumber, year]);
   }
+
+  /**
+   * Ingresos Totales (un restaurante)
+   * Query: SELECT * FROM dwh.get_venue_income_by_period($1, $2, $3, null, $4)
+   * Params: company_name, venue_name, year, month_number
+   */
+  @Get('kpi/ingresos-totales-por-restaurante')
+  async getIngresosTotalesPorRestaurante(
+    @Query('company_name') companyName: string,
+    @Query('venue_name') venueName: string,
+    @Query('year') year: string,
+    @Query('month_number') monthNumber: string,
+  ) {
+    if (!companyName || !venueName || !year || !monthNumber) {
+      return { success: false, message: 'Faltan parámetros requeridos: company_name, venue_name, year, month_number' };
+    }
+    const sql = 'SELECT * FROM dwh.get_venue_income_by_period($1, $2, $3, null, $4)';
+    return this.syncService.queryExternalKpi(sql, [companyName, venueName, year, monthNumber]);
+  }
 }
