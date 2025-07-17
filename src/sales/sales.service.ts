@@ -4,28 +4,22 @@ import { Repository } from 'typeorm';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { UpdateSaleDto } from './dto/update-sale.dto';
 import { Sale, PaymentMethod, SaleStatus } from './entities/sale.entity';
-import { Ticket } from 'src/tickets/entities/ticket.entity';
 import { Venue } from 'src/venue/entities/venue.entity';
 import { User } from 'src/users/entities/user.entity';
 import { PermissionsService } from 'src/auth/permissions.service';
 import { PermissionType } from 'src/auth/enums/permission-type.enum';
 import { ResourceType } from 'src/auth/enums/resource-type.enum';
 import { SyncService } from '../database/sync.service';
-import { IncomeService } from '../income/income.service';
-import { IncomeCategory, IncomeStatus } from '../income/entities/income.entity';
 
 @Injectable()
 export class SalesService {
   constructor(
     @InjectRepository(Sale)
     private readonly saleRepository: Repository<Sale>,
-    @InjectRepository(Ticket)
-    private readonly ticketRepository: Repository<Ticket>,
     @InjectRepository(Venue)
     private readonly venueRepository: Repository<Venue>,
     private readonly permissionsService: PermissionsService,
     private readonly syncService: SyncService,
-    private readonly incomeService: IncomeService,
   ) {}
 
   async create(createSaleDto: CreateSaleDto, userId?: number): Promise<Sale> {
@@ -40,25 +34,7 @@ export class SalesService {
       createdBy: userId ? { id: userId } as User : undefined,
     };
 
-    if (createSaleDto.ticketId) {
-      // Si se especifica ticketId, obtener el ticket y su venue
-      const ticket = await this.ticketRepository.findOne({
-        where: { id: createSaleDto.ticketId },
-        relations: ['venue'],
-      });
-      
-      if (!ticket) {
-        throw new NotFoundException(`Ticket with ID ${createSaleDto.ticketId} not found`);
-      }
-      
-      saleData.ticket = { id: createSaleDto.ticketId } as any;
-      
-      // Verificar si el ticket tiene venue
-      if (ticket.venue) {
-        saleData.venue = { id: ticket.venue.id } as any;
-      }
-      
-    } else if (createSaleDto.venueId) {
+    if (createSaleDto.venueId) {
       // Si se especifica venueId, obtener el local
       const venue = await this.venueRepository.findOne({
         where: { id: createSaleDto.venueId },
@@ -74,24 +50,6 @@ export class SalesService {
     const sale = this.saleRepository.create(saleData);
     const savedSale = await this.saleRepository.save(sale);
     
-    // Crear ingreso automáticamente asociado a la venta
-    try {
-      const incomeData = {
-        name: `Venta: ${savedSale.productName}`,
-        amount: savedSale.totalAmount,
-        category: IncomeCategory.TICKET_SALES, // Puedes ajustar según el tipo de producto
-        status: IncomeStatus.RECEIVED,
-        date: savedSale.createdAt.toISOString().split('T')[0], // Formato YYYY-MM-DD
-        venueId: savedSale.venue?.id,
-        saleId: savedSale.id, // Vincular con la venta
-      };
-      
-      await this.incomeService.create(incomeData, userId || 1);
-    } catch (error) {
-      console.error('Error creating income from sale:', error);
-      // No lanzar error para no afectar la creación de la venta
-    }
-    
     // Sincronizar con base de datos externa de forma asíncrona
     this.syncService.syncEntity('Sale', 'create', savedSale).catch(error => {
       console.error('Failed to sync sale creation to external DB:', error);
@@ -104,7 +62,7 @@ export class SalesService {
     // Si no hay userId, retornar todas las ventas sin verificación de permisos
     if (!userId) {
       return await this.saleRepository.find({
-        relations: ['ticket', 'createdBy', 'venue'],
+        relations: ['createdBy', 'venue'],
         take: 100, // Limitar a 100 registros para evitar sobrecarga
         order: { createdAt: 'DESC' }, // Ordenar por fecha de creación descendente
       });
@@ -125,7 +83,6 @@ export class SalesService {
 
       // Construir query basado en permisos
       const queryBuilder = this.saleRepository.createQueryBuilder('sale')
-        .leftJoinAndSelect('sale.ticket', 'ticket')
         .leftJoinAndSelect('sale.createdBy', 'createdBy')
         .leftJoinAndSelect('sale.venue', 'venue')
         .take(100) // Limitar resultados
@@ -162,7 +119,7 @@ export class SalesService {
   async findOne(id: number, userId?: number): Promise<Sale> {
     const sale = await this.saleRepository.findOne({
       where: { id },
-      relations: ['ticket', 'createdBy', 'venue'],
+      relations: ['createdBy', 'venue'],
     });
     
     if (!sale) {
@@ -225,14 +182,14 @@ export class SalesService {
 
     return await this.saleRepository.find({
       where: { venue: { id: venueId } },
-      relations: ['ticket', 'createdBy', 'venue'],
+      relations: ['createdBy', 'venue'],
     });
   }
 
   async findByUser(userId: number): Promise<Sale[]> {
     return await this.saleRepository.find({
       where: { createdBy: { id: userId } },
-      relations: ['ticket', 'createdBy', 'venue'],
+      relations: ['createdBy', 'venue'],
     });
   }
 
@@ -262,7 +219,6 @@ export class SalesService {
   ): Promise<Sale[]> {
     const queryBuilder = this.saleRepository
       .createQueryBuilder('sale')
-      .leftJoinAndSelect('sale.ticket', 'ticket')
       .leftJoinAndSelect('sale.createdBy', 'createdBy')
       .leftJoinAndSelect('sale.venue', 'venue')
       .where('sale.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate });
@@ -281,7 +237,6 @@ export class SalesService {
   ): Promise<Sale[]> {
     const queryBuilder = this.saleRepository
       .createQueryBuilder('sale')
-      .leftJoinAndSelect('sale.ticket', 'ticket')
       .leftJoinAndSelect('sale.createdBy', 'createdBy')
       .leftJoinAndSelect('sale.venue', 'venue')
       .where('sale.paymentMethod = :paymentMethod', { paymentMethod });
@@ -300,7 +255,6 @@ export class SalesService {
   ): Promise<Sale[]> {
     const queryBuilder = this.saleRepository
       .createQueryBuilder('sale')
-      .leftJoinAndSelect('sale.ticket', 'ticket')
       .leftJoinAndSelect('sale.createdBy', 'createdBy')
       .leftJoinAndSelect('sale.venue', 'venue')
       .where('sale.status = :status', { status });

@@ -12,9 +12,6 @@ import { DataSource } from 'typeorm';
 import { exec } from 'child_process';
 import { UsersService } from '../users/users.service';
 import { VenueService } from '../venue/venue.service';
-import { IncomeService } from '../income/income.service';
-import { SalesService } from '../sales/sales.service';
-import { IncomeCategory, IncomeStatus } from '../income/entities/income.entity';
 
 @Controller('database')
 export class DatabaseController {
@@ -24,8 +21,6 @@ export class DatabaseController {
     private readonly syncService: SyncService,
     private readonly usersService: UsersService,
     private readonly venueService: VenueService,
-    private readonly incomeService: IncomeService,
-    private readonly salesService: SalesService,
     @Optional()
     @InjectDataSource('external')
     private readonly externalDataSource?: DataSource,
@@ -232,40 +227,7 @@ export class DatabaseController {
     }
   }
 
-  @Post('sync-incomes-from-sales')
-  async syncIncomesFromSales() {
-    // Buscar todas las ventas
-    const sales = await this.salesService.findAll();
-    let created = 0;
-    let alreadyLinked = 0;
-    for (const sale of sales) {
-      // Verificar si ya existe un ingreso asociado a esta venta
-      const existingIncome = await this.incomeService.findBySaleId(sale.id);
-      if (existingIncome) {
-        alreadyLinked++;
-        continue;
-      }
-      // Crear ingreso asociado a la venta
-      const incomeData = {
-        name: `Venta: ${sale.productName}`,
-        amount: sale.totalAmount,
-        category: IncomeCategory.TICKET_SALES,
-        status: IncomeStatus.RECEIVED,
-        date: sale.createdAt ? sale.createdAt.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-        venueId: sale.venue?.id,
-        saleId: sale.id,
-      };
-      await this.incomeService.create(incomeData, 1); // userId 1 (admin)
-      created++;
-    }
-    return {
-      success: true,
-      message: 'Sincronización de ingresos desde ventas completada',
-      created,
-      alreadyLinked,
-      totalSales: sales.length,
-    };
-  }
+  // Eliminar métodos y lógica que usen salesService, incomeService, IncomeCategory, IncomeStatus.
 
   @Get('kpi/beneficio-estimado')
   async getBeneficioEstimado(
@@ -368,6 +330,78 @@ export class DatabaseController {
       return { success: false, message: 'Faltan parámetros requeridos: company_name, week_number, year' };
     }
     const sql = 'SELECT * from dwh.fn_week_total_attendees($1, $2, $3)';
+    return this.syncService.queryExternalKpi(sql, [companyName, weekNumber, year]);
+  }
+
+  /**
+   * Ingresos por restaurante (diario)
+   * Query: SELECT * FROM dwh.fn_weekly_venues_income($1, $2, $3, null)
+   * Params: company_name, week_number, year
+   */
+  @Get('kpi/ingresos-por-restaurante-diario')
+  async getIngresosPorRestauranteDiario(
+    @Query('company_name') companyName: string,
+    @Query('week_number') weekNumber: string,
+    @Query('year') year: string,
+  ) {
+    if (!companyName || !weekNumber || !year) {
+      return { success: false, message: 'Faltan parámetros requeridos: company_name, week_number, year' };
+    }
+    const sql = 'SELECT * FROM dwh.fn_weekly_venues_income($1, $2, $3, null)';
+    return this.syncService.queryExternalKpi(sql, [companyName, weekNumber, year]);
+  }
+
+  /**
+   * Números de comensales por restaurante (diario)
+   * Query: SELECT * FROM dwh.fn_weekly_attendance_by_venue($1, $2, $3)
+   * Params: company_name, week_number, year
+   */
+  @Get('kpi/comensales-por-restaurante-diario')
+  async getComensalesPorRestauranteDiario(
+    @Query('company_name') companyName: string,
+    @Query('week_number') weekNumber: string,
+    @Query('year') year: string,
+  ) {
+    if (!companyName || !weekNumber || !year) {
+      return { success: false, message: 'Faltan parámetros requeridos: company_name, week_number, year' };
+    }
+    const sql = 'SELECT * FROM dwh.fn_weekly_attendance_by_venue($1, $2, $3)';
+    return this.syncService.queryExternalKpi(sql, [companyName, weekNumber, year]);
+  }
+
+  /**
+   * Ticket medio por comensal
+   * Query: SELECT * FROM dwh.fn_weekly_avg_income_per_attendee($1, $2, $3)
+   * Params: company_name, week_number, year
+   */
+  @Get('kpi/ticket-medio-por-comensal')
+  async getTicketMedioPorComensal(
+    @Query('company_name') companyName: string,
+    @Query('week_number') weekNumber: string,
+    @Query('year') year: string,
+  ) {
+    if (!companyName || !weekNumber || !year) {
+      return { success: false, message: 'Faltan parámetros requeridos: company_name, week_number, year' };
+    }
+    const sql = 'SELECT * FROM dwh.fn_weekly_avg_income_per_attendee($1, $2, $3)';
+    return this.syncService.queryExternalKpi(sql, [companyName, weekNumber, year]);
+  }
+
+  /**
+   * Ticket medio por comensal y restaurante (diario)
+   * Query: SELECT * FROM dwh.fn_weekly_avg_ticket_by_venue($1, $2, $3)
+   * Params: company_name, week_number, year
+   */
+  @Get('kpi/ticket-medio-por-comensal-restaurante-diario')
+  async getTicketMedioPorComensalRestauranteDiario(
+    @Query('company_name') companyName: string,
+    @Query('week_number') weekNumber: string,
+    @Query('year') year: string,
+  ) {
+    if (!companyName || !weekNumber || !year) {
+      return { success: false, message: 'Faltan parámetros requeridos: company_name, week_number, year' };
+    }
+    const sql = 'SELECT * FROM dwh.fn_weekly_avg_ticket_by_venue($1, $2, $3)';
     return this.syncService.queryExternalKpi(sql, [companyName, weekNumber, year]);
   }
 }
