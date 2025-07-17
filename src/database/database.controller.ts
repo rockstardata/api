@@ -12,8 +12,10 @@ import { DataSource } from 'typeorm';
 import { exec } from 'child_process';
 import { UsersService } from '../users/users.service';
 import { VenueService } from '../venue/venue.service';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 
 @Controller('database')
+@ApiTags('database')
 export class DatabaseController {
   private readonly logger = new Logger(DatabaseController.name);
 
@@ -229,7 +231,16 @@ export class DatabaseController {
 
   // Eliminar métodos y lógica que usen salesService, incomeService, IncomeCategory, IncomeStatus.
 
+  /**
+   * KPI: Beneficio Estimado
+   * Query: SELECT * from dwh.fn_estimated_profit_by_company_and_period($1, $2, $3, null)
+   * Params: company_name, year, week_number
+   */
   @Get('kpi/beneficio-estimado')
+  @ApiOperation({ summary: 'KPI: Beneficio Estimado', description: 'Ejecuta: SELECT * from dwh.fn_estimated_profit_by_company_and_period($1, $2, $3, null)' })
+  @ApiQuery({ name: 'company_name', required: true, description: 'Nombre de la compañía' })
+  @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
+  @ApiQuery({ name: 'week_number', required: true, description: 'Número de semana (ej: 11)' })
   async getBeneficioEstimado(
     @Query('company_name') companyName: string,
     @Query('year') year: string,
@@ -242,7 +253,16 @@ export class DatabaseController {
     return this.syncService.queryExternalKpi(sql, [companyName, year, weekNumber]);
   }
 
+  /**
+   * KPI: Ingresos Totales
+   * Query: SELECT * from dwh.fn_total_income_by_period($1, $2, $3, null)
+   * Params: company_name, year, week_number
+   */
   @Get('kpi/ingresos-totales')
+  @ApiOperation({ summary: 'KPI: Ingresos Totales', description: 'Ejecuta: SELECT * from dwh.fn_total_income_by_period($1, $2, $3, null)' })
+  @ApiQuery({ name: 'company_name', required: true, description: 'Nombre de la compañía' })
+  @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
+  @ApiQuery({ name: 'week_number', required: true, description: 'Número de semana (ej: 11)' })
   async getIngresosTotales(
     @Query('company_name') companyName: string,
     @Query('year') year: string,
@@ -255,7 +275,16 @@ export class DatabaseController {
     return this.syncService.queryExternalKpi(sql, [companyName, year, weekNumber]);
   }
 
+  /**
+   * KPI: Gastos Totales
+   * Query: SELECT * from dwh.get_debit_variation_by_company_and_period($1, $2, $3, null)
+   * Params: company_name, year, week_number
+   */
   @Get('kpi/gastos-totales')
+  @ApiOperation({ summary: 'KPI: Gastos Totales', description: 'Ejecuta: SELECT * from dwh.get_debit_variation_by_company_and_period($1, $2, $3, null)' })
+  @ApiQuery({ name: 'company_name', required: true, description: 'Nombre de la compañía' })
+  @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
+  @ApiQuery({ name: 'week_number', required: true, description: 'Número de semana (ej: 11)' })
   async getGastosTotales(
     @Query('company_name') companyName: string,
     @Query('year') year: string,
@@ -268,7 +297,16 @@ export class DatabaseController {
     return this.syncService.queryExternalKpi(sql, [companyName, year, weekNumber]);
   }
 
+  /**
+   * KPI: Beneficio Estimado por Local
+   * Query: SELECT * from dwh.fn_estimated_profit_by_venues_and_week($1, $2, $3)
+   * Params: company_name, year, week_number
+   */
   @Get('kpi/beneficio-estimado-por-local')
+  @ApiOperation({ summary: 'KPI: Beneficio Estimado por Local', description: 'Ejecuta: SELECT * from dwh.fn_estimated_profit_by_venues_and_week($1, $2, $3)' })
+  @ApiQuery({ name: 'company_name', required: true, description: 'Nombre de la compañía' })
+  @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
+  @ApiQuery({ name: 'week_number', required: true, description: 'Número de semana (ej: 11)' })
   async getBeneficioEstimadoPorLocal(
     @Query('company_name') companyName: string,
     @Query('year') year: string,
@@ -281,7 +319,16 @@ export class DatabaseController {
     return this.syncService.queryExternalKpi(sql, [companyName, year, weekNumber]);
   }
 
+  /**
+   * KPI: Gastos Totales por Categoría
+   * Query: SELECT * from dwh.get_debit_variation_by_company_and_period($1, $2, null, $3)
+   * Params: company_name, year, month_number
+   */
   @Get('kpi/gastos-totales-por-categoria')
+  @ApiOperation({ summary: 'KPI: Gastos Totales por Categoría', description: 'Ejecuta: SELECT * from dwh.get_debit_variation_by_company_and_period($1, $2, null, $3)' })
+  @ApiQuery({ name: 'company_name', required: true, description: 'Nombre de la compañía' })
+  @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
+  @ApiQuery({ name: 'month_number', required: true, description: 'Número de mes (ej: 6 para junio)' })
   async getGastosTotalesPorCategoria(
     @Query('company_name') companyName: string,
     @Query('year') year: string,
@@ -294,7 +341,16 @@ export class DatabaseController {
     return this.syncService.queryExternalKpi(sql, [companyName, year, monthNumber]);
   }
 
+  /**
+   * KPI: Ingresos por Turno
+   * Query: SELECT * from dwh.fn_sales_comparison_by_section($1, $2, null, $3, null)
+   * Params: company_name, year, week_number
+   */
   @Get('kpi/ingresos-por-turno')
+  @ApiOperation({ summary: 'KPI: Ingresos por Turno', description: 'Ejecuta: SELECT * from dwh.fn_sales_comparison_by_section($1, $2, null, $3, null)' })
+  @ApiQuery({ name: 'company_name', required: true, description: 'Nombre de la compañía' })
+  @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
+  @ApiQuery({ name: 'week_number', required: true, description: 'Número de semana (ej: 11)' })
   async getIngresosPorTurno(
     @Query('company_name') companyName: string,
     @Query('year') year: string,
@@ -307,7 +363,16 @@ export class DatabaseController {
     return this.syncService.queryExternalKpi(sql, [companyName, year, weekNumber]);
   }
 
+  /**
+   * KPI: Ratio Personal
+   * Query: SELECT * from dwh.fn_personnel_expense_ratio($1, $2, null, $3, null)
+   * Params: company_name, year, week_number
+   */
   @Get('kpi/ratio-personal')
+  @ApiOperation({ summary: 'KPI: Ratio Personal', description: 'Ejecuta: SELECT * from dwh.fn_personnel_expense_ratio($1, $2, null, $3, null)' })
+  @ApiQuery({ name: 'company_name', required: true, description: 'Nombre de la compañía' })
+  @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
+  @ApiQuery({ name: 'week_number', required: true, description: 'Número de semana (ej: 11)' })
   async getRatioPersonal(
     @Query('company_name') companyName: string,
     @Query('year') year: string,
@@ -320,7 +385,16 @@ export class DatabaseController {
     return this.syncService.queryExternalKpi(sql, [companyName, year, weekNumber]);
   }
 
+  /**
+   * KPI: Comensales Totales
+   * Query: SELECT * from dwh.fn_week_total_attendees($1, $2, $3)
+   * Params: company_name, week_number, year
+   */
   @Get('kpi/comensales-totales')
+  @ApiOperation({ summary: 'KPI: Comensales Totales', description: 'Ejecuta: SELECT * from dwh.fn_week_total_attendees($1, $2, $3)' })
+  @ApiQuery({ name: 'company_name', required: true, description: 'Nombre de la compañía' })
+  @ApiQuery({ name: 'week_number', required: true, description: 'Número de semana (ej: 11)' })
+  @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   async getComensalesTotales(
     @Query('company_name') companyName: string,
     @Query('week_number') weekNumber: string,
@@ -334,11 +408,15 @@ export class DatabaseController {
   }
 
   /**
-   * Ingresos por restaurante (diario)
+   * KPI: Ingresos por Restaurante (diario)
    * Query: SELECT * FROM dwh.fn_weekly_venues_income($1, $2, $3, null)
    * Params: company_name, week_number, year
    */
   @Get('kpi/ingresos-por-restaurante-diario')
+  @ApiOperation({ summary: 'KPI: Ingresos por Restaurante (diario)', description: 'Ejecuta: SELECT * FROM dwh.fn_weekly_venues_income($1, $2, $3, null)' })
+  @ApiQuery({ name: 'company_name', required: true, description: 'Nombre de la compañía' })
+  @ApiQuery({ name: 'week_number', required: true, description: 'Número de semana (ej: 11)' })
+  @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   async getIngresosPorRestauranteDiario(
     @Query('company_name') companyName: string,
     @Query('week_number') weekNumber: string,
@@ -352,11 +430,15 @@ export class DatabaseController {
   }
 
   /**
-   * Números de comensales por restaurante (diario)
+   * KPI: Comensales por Restaurante (diario)
    * Query: SELECT * FROM dwh.fn_weekly_attendance_by_venue($1, $2, $3)
    * Params: company_name, week_number, year
    */
   @Get('kpi/comensales-por-restaurante-diario')
+  @ApiOperation({ summary: 'KPI: Comensales por Restaurante (diario)', description: 'Ejecuta: SELECT * FROM dwh.fn_weekly_attendance_by_venue($1, $2, $3)' })
+  @ApiQuery({ name: 'company_name', required: true, description: 'Nombre de la compañía' })
+  @ApiQuery({ name: 'week_number', required: true, description: 'Número de semana (ej: 11)' })
+  @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   async getComensalesPorRestauranteDiario(
     @Query('company_name') companyName: string,
     @Query('week_number') weekNumber: string,
@@ -370,11 +452,15 @@ export class DatabaseController {
   }
 
   /**
-   * Ticket medio por comensal
+   * KPI: Ticket Medio por Comensal
    * Query: SELECT * FROM dwh.fn_weekly_avg_income_per_attendee($1, $2, $3)
    * Params: company_name, week_number, year
    */
   @Get('kpi/ticket-medio-por-comensal')
+  @ApiOperation({ summary: 'KPI: Ticket Medio por Comensal', description: 'Ejecuta: SELECT * FROM dwh.fn_weekly_avg_income_per_attendee($1, $2, $3)' })
+  @ApiQuery({ name: 'company_name', required: true, description: 'Nombre de la compañía' })
+  @ApiQuery({ name: 'week_number', required: true, description: 'Número de semana (ej: 11)' })
+  @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   async getTicketMedioPorComensal(
     @Query('company_name') companyName: string,
     @Query('week_number') weekNumber: string,
@@ -388,11 +474,15 @@ export class DatabaseController {
   }
 
   /**
-   * Ticket medio por comensal y restaurante (diario)
+   * KPI: Ticket Medio por Comensal y Restaurante (diario)
    * Query: SELECT * FROM dwh.fn_weekly_avg_ticket_by_venue($1, $2, $3)
    * Params: company_name, week_number, year
    */
   @Get('kpi/ticket-medio-por-comensal-restaurante-diario')
+  @ApiOperation({ summary: 'KPI: Ticket Medio por Comensal y Restaurante (diario)', description: 'Ejecuta: SELECT * FROM dwh.fn_weekly_avg_ticket_by_venue($1, $2, $3)' })
+  @ApiQuery({ name: 'company_name', required: true, description: 'Nombre de la compañía' })
+  @ApiQuery({ name: 'week_number', required: true, description: 'Número de semana (ej: 11)' })
+  @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   async getTicketMedioPorComensalRestauranteDiario(
     @Query('company_name') companyName: string,
     @Query('week_number') weekNumber: string,
@@ -406,11 +496,16 @@ export class DatabaseController {
   }
 
   /**
-   * Ingresos Totales (un restaurante)
+   * KPI: Ingresos Totales por Restaurante
    * Query: SELECT * FROM dwh.get_venue_income_by_period($1, $2, $3, null, $4)
    * Params: company_name, venue_name, year, month_number
    */
   @Get('kpi/ingresos-totales-por-restaurante')
+  @ApiOperation({ summary: 'KPI: Ingresos Totales por Restaurante', description: 'Ejecuta: SELECT * FROM dwh.get_venue_income_by_period($1, $2, $3, null, $4)' })
+  @ApiQuery({ name: 'company_name', required: true, description: 'Nombre de la compañía' })
+  @ApiQuery({ name: 'venue_name', required: true, description: 'Nombre del restaurante' })
+  @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
+  @ApiQuery({ name: 'month_number', required: true, description: 'Número de mes (ej: 6 para junio)' })
   async getIngresosTotalesPorRestaurante(
     @Query('company_name') companyName: string,
     @Query('venue_name') venueName: string,
