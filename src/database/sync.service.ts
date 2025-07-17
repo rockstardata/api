@@ -114,4 +114,11 @@ export class SyncService {
       return false;
     }
   }
+
+  async queryExternalKpi(sql: string, params: any[]): Promise<any> {
+    if (!this.externalDataSource) {
+      throw new Error('No hay conexión configurada a la base de datos externa');
+    }
+    return this.externalDataSource.query(sql, params);
+  }
 }
