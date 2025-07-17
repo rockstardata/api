@@ -8,10 +8,13 @@ import { DatabaseController } from './database.controller';
 import { DatabaseTestController } from './database-test.controller';
 import { UsersModule } from '../users/users.module';
 import { VenueModule } from '../venue/venue.module';
-import { IncomeModule } from '../income/income.module';
-import { SalesModule } from '../sales/sales.module';
 
-console.log('EXTERNAL_DB_HOST en DatabaseModule:', process.env.EXTERNAL_DB_HOST);
+// Corregir console.log para cumplir linter:
+console.log(
+  'EXTERNAL_DB_HOST en DatabaseModule:',
+  process.env.EXTERNAL_DB_HOST,
+);
+// Revisar y corregir parámetros de funciones si es necesario para cumplir linter.
 @Module({
   imports: [
     // Base de datos principal (tu configuración actual)
@@ -58,8 +61,6 @@ console.log('EXTERNAL_DB_HOST en DatabaseModule:', process.env.EXTERNAL_DB_HOST)
       : []),
     UsersModule,
     VenueModule,
-    IncomeModule,
-    SalesModule,
   ],
   controllers: [DatabaseController, DatabaseTestController],
   providers: [SyncService],

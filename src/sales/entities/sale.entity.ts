@@ -65,9 +65,6 @@ export class Sale {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @ManyToOne('Ticket', 'sales')
-  ticket: any;
-
   @ManyToOne(() => User, { nullable: true })
   createdBy: User;
 

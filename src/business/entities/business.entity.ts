@@ -1,5 +1,4 @@
 import { Company } from 'src/company/entities/company.entity';
-import { StaffMember } from 'src/staff-member/entities/staff-member.entity';
 import { User } from 'src/users/entities/user.entity';
 import {
   Column,
@@ -51,6 +50,4 @@ export class Business {
 
   @ManyToOne(() => User, { nullable: true })
   createdBy: User;
-
-  // Removed staffMembers relation as StaffMember now relates to Venue instead of Business
 }

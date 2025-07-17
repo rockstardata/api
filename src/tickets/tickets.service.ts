@@ -16,43 +16,26 @@ export class TicketsService {
     private readonly syncService: SyncService,
   ) {}
 
-  async create(createTicketDto: CreateTicketDto): Promise<Ticket> {
+  async create(createTicketDto: any): Promise<any> {
     const { venueId, sales, ...ticketData } = createTicketDto;
-
-    const venue = await this.venueRepository.findOne({
-      where: { id: venueId },
-    });
-    if (!venue) {
-      throw new NotFoundException(`Venue with ID "${venueId}" not found`);
-    }
-
-    const ticket = this.ticketRepository.create({
-      ...ticketData,
-      venue,
-      sales: sales,
-    });
-
+    // Crear ticket solo con ticketData
+    const ticket = this.ticketRepository.create({ ...ticketData });
     const savedTicket = await this.ticketRepository.save(ticket);
-
     this.syncService
       .syncEntity('Ticket', 'create', savedTicket)
       .catch((error) => {
         console.error('Failed to sync ticket creation to external DB:', error);
       });
-
     return savedTicket;
   }
 
   findAll() {
-    return this.ticketRepository.find({
-      relations: ['venue', 'sales'],
-    });
+    return this.ticketRepository.find();
   }
 
   async findOne(id: number) {
     const ticket = await this.ticketRepository.findOne({
       where: { id },
-      relations: ['venue', 'sales'],
     });
     if (!ticket) {
       throw new NotFoundException(`Ticket with ID "${id}" not found`);
