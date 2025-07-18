@@ -6,9 +6,12 @@ import { User } from './entities/user.entity';
 import { SyncService } from '../database/sync.service';
 import { OrganizationUser } from '../organization/entities/organizationUser.entity';
 import { Role } from '../role/entities/role.entity';
+import { UserVenueRole } from './entities/user-venue-role.entity';
+import { Venue } from '../venue/entities/venue.entity';
+import { Organization } from '../organization/entities/organization.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, OrganizationUser, Role])],
+  imports: [TypeOrmModule.forFeature([User, OrganizationUser, Role, UserVenueRole, Venue, Organization])],
   controllers: [UsersController],
   providers: [UsersService, SyncService],
   exports: [UsersService],

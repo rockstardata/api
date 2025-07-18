@@ -9,6 +9,23 @@ export class RecController {
 
   // Endpoint genérico para hacer queries a la base de datos externa
   @Get('query')
+  @ApiOperation({
+    summary: 'Execute custom SQL query',
+    description: 'Execute a custom SQL query against the external database',
+  })
+  @ApiQuery({
+    name: 'sql',
+    required: true,
+    description: 'SQL query to execute',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Query executed successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - SQL parameter is required',
+  })
   async queryExternalDb(@Query('sql') sql: string) {
     if (!sql) {
       throw new BadRequestException('El parámetro sql es requerido');
@@ -18,12 +35,33 @@ export class RecController {
 
   // Endpoint para KPI: Beneficio estimado
   @Get('kpi/beneficio-estimado')
-  @ApiOperation({ summary: 'Obtener el Beneficio Estimado (KPI 4) para una compañía, año y semana' })
-  @ApiQuery({ name: 'company_name', required: true, description: 'Nombre de la compañía (ej: PALLAPIZZA)' })
-  @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
-  @ApiQuery({ name: 'week_number', required: true, description: 'Número de semana (ej: 11)' })
-  @ApiResponse({ status: 200, description: 'Resultado del KPI Beneficio Estimado' })
-  @ApiResponse({ status: 400, description: 'Faltan parámetros requeridos' })
+  @ApiOperation({
+    summary: 'Get Estimated Profit KPI',
+    description: 'Get the Estimated Profit (KPI 4) for a company, year and week',
+  })
+  @ApiQuery({
+    name: 'company_name',
+    required: true,
+    description: 'Company name (e.g., PALLAPIZZA)',
+  })
+  @ApiQuery({
+    name: 'year',
+    required: true,
+    description: 'Year (e.g., 2024)',
+  })
+  @ApiQuery({
+    name: 'week_number',
+    required: true,
+    description: 'Week number (e.g., 11)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Estimated Profit KPI result',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Missing required parameters',
+  })
   async getBeneficioEstimado(
     @Query('company_name') companyName: string,
     @Query('year') year: string,
@@ -36,6 +74,18 @@ export class RecController {
   }
 
   @Get('test-external-connection')
+  @ApiOperation({
+    summary: 'Test external database connection',
+    description: 'Test the connection to the external database',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Connection test completed successfully',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Connection test failed',
+  })
   async testExternalConnection() {
     return this.recService.testExternalConnection();
   }

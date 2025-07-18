@@ -14,5 +14,20 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data 
 
+  api:
+    build: .
+    container_name: api
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: postgres-db
+      DB_PORT: 5432
+      DB_USER: RSDuser
+      DB_PASSWORD: Lamineyamal1
+      DB_NAME: LocalDB
+    depends_on:
+      - postgres-db
+
 volumes:
   postgres_data: 
