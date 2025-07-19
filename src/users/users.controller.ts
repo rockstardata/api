@@ -28,37 +28,43 @@ import { AuthGuard } from '@nestjs/passport';
 @ApiTags('users')
 @ApiBearerAuth()
 @Controller('users')
-@UseGuards(AuthGuard('jwt'), RolesGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  @Roles(RoleEnum.SuperAdmin, RoleEnum.Admin)
   @ApiOperation({ 
-    summary: 'Create a new user',
-    description: 'Create a new user in the system. Only SuperAdmin and Admin can create users.'
+    summary: 'Register a new user (Public)',
+    description: `
+    Register a new user account. This endpoint is public and anyone can create a user account.
+    
+    **Important:** The user will be created without any roles or permissions initially.
+    After registration, the user can only login but cannot access protected endpoints.
+    
+    **To assign roles and permissions:**
+    - A SuperAdmin or Admin must assign roles using the /users/assign-role endpoint
+    - The user will then have access to the appropriate features based on their role
+    
+    **Example workflow:**
+    1. User registers here (no permissions)
+    2. User can login but has limited access
+    3. Admin assigns role using /users/assign-role
+    4. User now has appropriate permissions
+    `
   })
   @ApiResponse({ 
     status: 201, 
-    description: 'User created successfully' 
+    description: 'User registered successfully. User can now login but has no permissions until roles are assigned.' 
   })
   @ApiResponse({ 
     status: 400, 
     description: 'Invalid data or user already exists' 
-  })
-  @ApiResponse({ 
-    status: 401, 
-    description: 'Unauthorized' 
-  })
-  @ApiResponse({ 
-    status: 403, 
-    description: 'Forbidden - Insufficient permissions' 
   })
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
 
   @Get()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(RoleEnum.SuperAdmin, RoleEnum.Admin, RoleEnum.CEO)
   @ApiOperation({ 
     summary: 'Get all users',
@@ -81,6 +87,7 @@ export class UsersController {
   }
 
   @Get(':id')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(RoleEnum.SuperAdmin, RoleEnum.Admin, RoleEnum.CEO)
   @ApiOperation({ 
     summary: 'Get user by ID',
@@ -107,6 +114,7 @@ export class UsersController {
   }
 
   @Patch(':id')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(RoleEnum.SuperAdmin, RoleEnum.Admin)
   @ApiOperation({ 
     summary: 'Update user',
@@ -133,6 +141,7 @@ export class UsersController {
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(RoleEnum.SuperAdmin)
   @ApiOperation({ 
     summary: 'Delete user',
@@ -161,6 +170,7 @@ export class UsersController {
   // Nuevos endpoints para gestión de roles
 
   @Post('assign-role')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(RoleEnum.SuperAdmin, RoleEnum.Admin)
   @ApiOperation({ 
     summary: 'Assign role to user',
@@ -187,6 +197,7 @@ export class UsersController {
   }
 
   @Delete('remove-role/:userId')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(RoleEnum.SuperAdmin, RoleEnum.Admin)
   @ApiOperation({ 
     summary: 'Remove role from user',
@@ -235,6 +246,7 @@ export class UsersController {
   }
 
   @Get('roles/:userId')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(RoleEnum.SuperAdmin, RoleEnum.Admin, RoleEnum.CEO)
   @ApiOperation({ 
     summary: 'Get user roles',
@@ -261,6 +273,7 @@ export class UsersController {
   }
 
   @Get('by-role/:roleId')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(RoleEnum.SuperAdmin, RoleEnum.Admin)
   @ApiOperation({ 
     summary: 'Get users by role',

@@ -52,7 +52,18 @@ export class UsersService {
   }
 
   async createSuperAdmin(createUserDto: CreateUserDto, organizationId: number) {
-    // 1. Crear usuario
+    // 1. Verificar/Crear organización si no existe
+    let organization = await this.organizationRepository.findOne({ where: { id: organizationId } });
+    if (!organization) {
+      organization = this.organizationRepository.create({ 
+        id: organizationId,
+        name: 'Organización Principal' 
+      });
+      await this.organizationRepository.save(organization);
+      console.log(`Organización ${organizationId} creada automáticamente`);
+    }
+
+    // 2. Crear usuario
     const { password, ...userData } = createUserDto;
     const user = this.userRepository.create({
       ...userData,
@@ -60,7 +71,7 @@ export class UsersService {
     });
     const savedUser = await this.userRepository.save(user);
 
-    // 2. Buscar el rol SuperAdmin
+    // 3. Buscar el rol SuperAdmin
     let superAdminRole = await this.roleRepository.findOne({ where: { name: 'superadmin' } });
     if (!superAdminRole) {
       // Si no existe, lo creamos
@@ -68,18 +79,18 @@ export class UsersService {
       await this.roleRepository.save(superAdminRole);
     }
 
-    // 3. Crear relación OrganizationUser
+    // 4. Crear relación OrganizationUser
     const orgUser = this.organizationUserRepository.create({
       user: savedUser,
-      organization: { id: organizationId } as any,
+      organization: organization,
       role: superAdminRole,
     });
     await this.organizationUserRepository.save(orgUser);
 
-    // 4. Asignar todos los permisos al super admin
+    // 5. Asignar todos los permisos al super admin
     await this.assignAllPermissionsToSuperAdmin(savedUser.id, organizationId);
 
-    // 5. Sincronizar con base externa
+    // 6. Sincronizar con base externa
     this.syncService.syncEntity('User', 'create', savedUser).catch(error => {
       console.error('Failed to sync user creation to external DB:', error);
     });
