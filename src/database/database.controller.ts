@@ -532,8 +532,8 @@ export class DatabaseController {
   @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   @ApiQuery({
     name: 'venue_name',
-    required: true,
-    description: 'Nombre del restaurante/venue',
+    required: false, // antes: true
+    description: 'Nombre del restaurante/venue (opcional)',
   })
   @ApiQuery({
     name: 'week_number',
@@ -546,11 +546,11 @@ export class DatabaseController {
     @Query('venue_name') venueName: string,
     @Query('week_number') weekNumber: string,
   ) {
-    if (!companyName || !year || !venueName || !weekNumber) {
+    if (!companyName || !year || !weekNumber) { // quitamos venueName de la validación obligatoria
       return {
         success: false,
         message:
-          'Faltan parámetros requeridos: company_name, year, venue_name, week_number',
+          'Faltan parámetros requeridos: company_name, year, week_number',
       };
     }
     const sql =
@@ -558,7 +558,7 @@ export class DatabaseController {
     return this.syncService.queryExternalKpi(sql, [
       companyName,
       year,
-      venueName,
+      venueName || null, // si no se envía, pasa null
       weekNumber,
     ]);
   }
