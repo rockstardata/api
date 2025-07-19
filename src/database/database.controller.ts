@@ -916,4 +916,54 @@ export class DatabaseController {
       monthNumber,
     ]);
   }
+
+  /**
+   * KPI: Beneficio Estimado (un restaurante)
+   * Query: SELECT * from dwh.fn_estimated_profit_by_venue_and_period($1, $2, $3, $4, null)
+   * Params: company_name, venue_name, year, week_number
+   */
+  @Get('kpi/beneficio-estimado-por-restaurante')
+  @ApiOperation({
+    summary: 'Beneficio Estimado (un restaurante)',
+    description:
+      'Ejecuta: SELECT * from dwh.fn_estimated_profit_by_venue_and_period($1, $2, $3, $4, null)',
+  })
+  @ApiQuery({
+    name: 'company_name',
+    required: true,
+    description: 'Nombre de la compañía',
+  })
+  @ApiQuery({
+    name: 'venue_name',
+    required: true,
+    description: 'Nombre del restaurante/venue',
+  })
+  @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
+  @ApiQuery({
+    name: 'week_number',
+    required: true,
+    description: 'Número de semana (ej: 11)',
+  })
+  async getBeneficioEstimadoPorRestaurante(
+    @Query('company_name') companyName: string,
+    @Query('venue_name') venueName: string,
+    @Query('year') year: string,
+    @Query('week_number') weekNumber: string,
+  ) {
+    if (!companyName || !venueName || !year || !weekNumber) {
+      return {
+        success: false,
+        message:
+          'Faltan parámetros requeridos: company_name, venue_name, year, week_number',
+      };
+    }
+    const sql =
+      'SELECT * from dwh.fn_estimated_profit_by_venue_and_period($1, $2, $3, $4, null)';
+    return this.syncService.queryExternalKpi(sql, [
+      companyName,
+      venueName,
+      year,
+      weekNumber,
+    ]);
+  }
 }
