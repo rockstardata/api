@@ -449,13 +449,63 @@ export class DatabaseController {
   }
 
   /**
-   * KPI: Ratio Personal
-   * Query: SELECT * from dwh.fn_personnel_expense_ratio($1, $2, null, $3, null)
-   * Params: company_name, year, week_number
+   * KPI: Ratio Personal (un restaurante)
+   * Query: SELECT * from dwh.fn_personnel_expense_ratio($1, $2, $3, $4, null)
+   * Params: company_name, year, venue_name, week_number
    */
   @Get('kpi/ratio-personal')
   @ApiOperation({
-    summary: 'KPI: Ratio Personal',
+    summary: 'KPI: Ratio Personal (un restaurante)',
+    description:
+      'Ratio de Personal (un restaurante) que es lo que retorna y la query que consume: SELECT * from dwh.fn_personnel_expense_ratio($1, $2, $3, $4, null)',
+  })
+  @ApiQuery({
+    name: 'company_name',
+    required: true,
+    description: 'Nombre de la compañía',
+  })
+  @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
+  @ApiQuery({
+    name: 'venue_name',
+    required: true,
+    description: 'Nombre del restaurante/venue',
+  })
+  @ApiQuery({
+    name: 'week_number',
+    required: true,
+    description: 'Número de semana (ej: 11)',
+  })
+  async getRatioPersonal(
+    @Query('company_name') companyName: string,
+    @Query('year') year: string,
+    @Query('venue_name') venueName: string,
+    @Query('week_number') weekNumber: string,
+  ) {
+    if (!companyName || !year || !venueName || !weekNumber) {
+      return {
+        success: false,
+        message:
+          'Faltan parámetros requeridos: company_name, year, venue_name, week_number',
+      };
+    }
+    const sql =
+      'SELECT * from dwh.fn_personnel_expense_ratio($1, $2, $3, $4, null)';
+    return this.syncService.queryExternalKpi(sql, [
+      companyName,
+      year,
+      venueName,
+      weekNumber,
+    ]);
+  }
+
+  /**
+   * KPI: Ratio Personal General
+   * Query: SELECT * from dwh.fn_personnel_expense_ratio($1, $2, null, $3, null)
+   * Params: company_name, year, week_number
+   */
+  @Get('kpi/ratio-personal-general')
+  @ApiOperation({
+    summary: 'KPI: Ratio Personal General',
     description:
       'Ejecuta: SELECT * from dwh.fn_personnel_expense_ratio($1, $2, null, $3, null)',
   })
@@ -470,7 +520,7 @@ export class DatabaseController {
     required: true,
     description: 'Número de semana (ej: 11)',
   })
-  async getRatioPersonal(
+  async getRatioPersonalGeneral(
     @Query('company_name') companyName: string,
     @Query('year') year: string,
     @Query('week_number') weekNumber: string,
