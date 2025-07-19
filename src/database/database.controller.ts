@@ -343,14 +343,14 @@ export class DatabaseController {
 
   /**
    * KPI: Gastos Totales
-   * Query: SELECT * from dwh.get_debit_variation_by_company_and_period($1, $2, $3, null)
-   * Params: company_name, year, week_number
+   * Query: SELECT * from dwh.get_debit_variation_by_company_and_period($1, $2, null, $3)
+   * Params: company_name, year, month_number
    */
   @Get('kpi/gastos-totales')
   @ApiOperation({
     summary: 'KPI: Gastos Totales',
     description:
-      'Ejecuta: SELECT * from dwh.get_debit_variation_by_company_and_period($1, $2, $3, null)',
+      'Ejecuta: SELECT * from dwh.get_debit_variation_by_company_and_period($1, $2, null, $3)',
   })
   @ApiQuery({
     name: 'company_name',
@@ -359,28 +359,28 @@ export class DatabaseController {
   })
   @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   @ApiQuery({
-    name: 'week_number',
+    name: 'month_number',
     required: true,
-    description: 'Número de semana (ej: 11)',
+    description: 'Número de mes (ej: 6 para junio)',
   })
   async getGastosTotales(
     @Query('company_name') companyName: string,
     @Query('year') year: string,
-    @Query('week_number') weekNumber: string,
+    @Query('month_number') monthNumber: string,
   ) {
-    if (!companyName || !year || !weekNumber) {
+    if (!companyName || !year || !monthNumber) {
       return {
         success: false,
         message:
-          'Faltan parámetros requeridos: company_name, year, week_number',
+          'Faltan parámetros requeridos: company_name, year, month_number',
       };
     }
     const sql =
-      'SELECT * from dwh.get_debit_variation_by_company_and_period($1, $2, $3, null)';
+      'SELECT * from dwh.get_debit_variation_by_company_and_period($1, $2, null, $3)';
     return this.syncService.queryExternalKpi(sql, [
       companyName,
       year,
-      weekNumber,
+      monthNumber,
     ]);
   }
 
@@ -859,6 +859,56 @@ export class DatabaseController {
     }
     const sql =
       'SELECT * FROM dwh.get_venue_income_by_period($1, $2, $3, null, $4)';
+    return this.syncService.queryExternalKpi(sql, [
+      companyName,
+      venueName,
+      year,
+      monthNumber,
+    ]);
+  }
+
+  /**
+   * KPI: Gastos Totales (un restaurante)
+   * Query: SELECT * from dwh.get_debit_variation_by_venue_and_period($1, $2, $3, null, $4)
+   * Params: company_name, venue_name, year, month_number
+   */
+  @Get('kpi/gastos-totales-por-restaurante')
+  @ApiOperation({
+    summary: 'Gastos Totales (un restaurante)',
+    description:
+      'Ejecuta: SELECT * from dwh.get_debit_variation_by_venue_and_period($1, $2, $3, null, $4)',
+  })
+  @ApiQuery({
+    name: 'company_name',
+    required: true,
+    description: 'Nombre de la compañía',
+  })
+  @ApiQuery({
+    name: 'venue_name',
+    required: true,
+    description: 'Nombre del restaurante/venue',
+  })
+  @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
+  @ApiQuery({
+    name: 'month_number',
+    required: true,
+    description: 'Número de mes (ej: 6 para junio)',
+  })
+  async getGastosTotalesPorRestaurante(
+    @Query('company_name') companyName: string,
+    @Query('venue_name') venueName: string,
+    @Query('year') year: string,
+    @Query('month_number') monthNumber: string,
+  ) {
+    if (!companyName || !venueName || !year || !monthNumber) {
+      return {
+        success: false,
+        message:
+          'Faltan parámetros requeridos: company_name, venue_name, year, month_number',
+      };
+    }
+    const sql =
+      'SELECT * from dwh.get_debit_variation_by_venue_and_period($1, $2, $3, null, $4)';
     return this.syncService.queryExternalKpi(sql, [
       companyName,
       venueName,
