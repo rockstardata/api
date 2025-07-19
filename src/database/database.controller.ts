@@ -1,5 +1,5 @@
 import { Controller, Get, Logger, Optional, Post, Query } from '@nestjs/common';
-import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { exec } from 'child_process';
 import { DataSource } from 'typeorm';
@@ -80,6 +80,69 @@ export class DatabaseController {
   }
 
   @Post('create-superadmin')
+  @ApiOperation({
+    summary: 'Crear Super Admin',
+    description: `
+    Crea un usuario Super Admin con todos los permisos del sistema.
+    
+    **Credenciales que se crearán:**
+    - **Email:** pallapizza.superadmin@rockstardata.ia
+    - **Password:** Admin.2025
+    - **Nombre:** PALLAPIZZA SUPERADMIN
+    
+    **Permisos asignados automáticamente:**
+    - view_income, view_sales, create_sales, update_sales, delete_sales
+    - view_business, create_business, update_business, delete_business
+    
+    **Después de crear el Super Admin, puedes hacer login con:**
+    \`\`\`bash
+    curl -X POST /auth/login \\
+      -H "Content-Type: application/json" \\
+      -d '{
+        "email": "pallapizza.superadmin@rockstardata.ia",
+        "password": "Admin.2025"
+      }'
+    \`\`\`
+    `,
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Super Admin creado exitosamente con todos los permisos',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        message: {
+          type: 'string',
+          example: 'SuperAdmin creado con todos los permisos',
+        },
+        user: {
+          type: 'object',
+          properties: {
+            id: { type: 'number', example: 1 },
+            email: {
+              type: 'string',
+              example: 'pallapizza.superadmin@rockstardata.ia',
+            },
+            firstName: { type: 'string', example: 'PALLAPIZZA' },
+            lastName: { type: 'string', example: 'SUPERADMIN' },
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Error al crear Super Admin',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: false },
+        message: { type: 'string', example: 'Error al crear SuperAdmin' },
+        error: { type: 'string', example: 'User already exists' },
+      },
+    },
+  })
   async createSuperAdminUser() {
     const dto = {
       firstName: 'PALLAPIZZA',
