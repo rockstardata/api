@@ -82,19 +82,21 @@ export class DatabaseController {
   @Post('create-superadmin')
   async createSuperAdminUser() {
     const dto = {
-      firstName: 'Super',
-      lastName: 'Admin',
-      email: 'superadmin@rockstardata.ai',
+      firstName: 'PALLAPIZZA',
+      lastName: 'SUPERADMIN',
+      email: 'pallapizza.superadmin@rockstardata.ia',
       password: 'Admin.2025',
     };
     try {
       const user = await this.usersService.createSuperAdmin(dto, 1);
       return {
         success: true,
-        message: 'SuperAdmin creado',
+        message: 'SuperAdmin creado con todos los permisos',
         user: {
           id: user.id,
           email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
         },
       };
     } catch (error) {

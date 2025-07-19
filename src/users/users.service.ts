@@ -12,6 +12,9 @@ import { Role } from 'src/role/entities/role.entity';
 import { UserVenueRole } from './entities/user-venue-role.entity';
 import { Venue } from 'src/venue/entities/venue.entity';
 import { Organization } from 'src/organization/entities/organization.entity';
+import { UserPermission } from 'src/auth/entities/user-permission.entity';
+import { PermissionType } from 'src/auth/enums/permission-type.enum';
+import { ResourceType } from 'src/auth/enums/resource-type.enum';
 
 @Injectable()
 export class UsersService {
@@ -29,6 +32,8 @@ export class UsersService {
     private readonly venueRepository: Repository<Venue>,
     @InjectRepository(Organization)
     private readonly organizationRepository: Repository<Organization>,
+    @InjectRepository(UserPermission)
+    private readonly userPermissionRepository: Repository<UserPermission>,
   ) { }
   async create(createUserDto: CreateUserDto) {
     const { password, ...userData } = createUserDto;
@@ -71,12 +76,63 @@ export class UsersService {
     });
     await this.organizationUserRepository.save(orgUser);
 
-    // 4. Sincronizar con base externa
+    // 4. Asignar todos los permisos al super admin
+    await this.assignAllPermissionsToSuperAdmin(savedUser.id, organizationId);
+
+    // 5. Sincronizar con base externa
     this.syncService.syncEntity('User', 'create', savedUser).catch(error => {
       console.error('Failed to sync user creation to external DB:', error);
     });
 
     return savedUser;
+  }
+
+  private async assignAllPermissionsToSuperAdmin(userId: number, organizationId: number) {
+    // Todos los tipos de permisos disponibles
+    const allPermissions = [
+      PermissionType.ViewIncome,
+      PermissionType.ViewSales,
+      PermissionType.CreateSales,
+      PermissionType.UpdateSales,
+      PermissionType.DeleteSales,
+      PermissionType.ViewBusiness,
+      PermissionType.CreateBusiness,
+      PermissionType.UpdateBusiness,
+      PermissionType.DeleteBusiness,
+    ];
+
+    // Asignar todos los permisos a nivel de organización
+    for (const permissionType of allPermissions) {
+      try {
+        await this.assignPermissionToUser(userId, permissionType, ResourceType.Organization, organizationId);
+      } catch (error) {
+        console.error(`Error assigning permission ${permissionType}:`, error.message);
+      }
+    }
+
+    console.log(`All permissions assigned to super admin user ${userId} for organization ${organizationId}`);
+  }
+
+  private async assignPermissionToUser(userId: number, permissionType: PermissionType, resourceType: ResourceType, resourceId: number) {
+    // Verificar si el permiso ya existe
+    const existingPermission = await this.userPermissionRepository.findOne({
+      where: {
+        user: { id: userId },
+        permissionType,
+        resourceType,
+        resourceId,
+      },
+    });
+
+    if (!existingPermission) {
+      const permission = this.userPermissionRepository.create({
+        user: { id: userId },
+        permissionType,
+        resourceType,
+        resourceId,
+      });
+      await this.userPermissionRepository.save(permission);
+    }
   }
 
   findAll(): Promise<User[]> {
