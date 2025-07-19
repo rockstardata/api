@@ -966,4 +966,97 @@ export class DatabaseController {
       weekNumber,
     ]);
   }
+
+  /**
+   * Ingresos por categoría (todos los restaurantes)
+   * Query: SELECT * from dwh.fn_sales_comparison_by_section($1, $2, null, null, $3)
+   * Params: company_name, year, month_number
+   */
+  @Get('kpi/ingresos-por-categoria')
+  @ApiOperation({
+    summary: 'Ingresos por categoría (todos los restaurantes)',
+    description:
+      'Ejecuta: SELECT * from dwh.fn_sales_comparison_by_section($1, $2, null, null, $3)',
+  })
+  @ApiQuery({
+    name: 'company_name',
+    required: true,
+    description: 'Nombre de la compañía',
+  })
+  @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
+  @ApiQuery({
+    name: 'month_number',
+    required: true,
+    description: 'Número de mes (ej: 6 para junio)',
+  })
+  async getIngresosPorCategoria(
+    @Query('company_name') companyName: string,
+    @Query('year') year: string,
+    @Query('month_number') monthNumber: string,
+  ) {
+    if (!companyName || !year || !monthNumber) {
+      return {
+        success: false,
+        message:
+          'Faltan parámetros requeridos: company_name, year, month_number',
+      };
+    }
+    const sql =
+      'SELECT * from dwh.fn_sales_comparison_by_section($1, $2, null, null, $3)';
+    return this.syncService.queryExternalKpi(sql, [
+      companyName,
+      year,
+      monthNumber,
+    ]);
+  }
+
+  /**
+   * Ingresos por categoría (un restaurante)
+   * Query: SELECT * from dwh.fn_sales_comparison_by_section($1, $2, null, $3, $4)
+   * Params: company_name, year, venue_name, month_number
+   */
+  @Get('kpi/ingresos-por-categoria-restaurante')
+  @ApiOperation({
+    summary: 'Ingresos por categoría (un restaurante)',
+    description:
+      'Ejecuta: SELECT * from dwh.fn_sales_comparison_by_section($1, $2, null, $3, $4)',
+  })
+  @ApiQuery({
+    name: 'company_name',
+    required: true,
+    description: 'Nombre de la compañía',
+  })
+  @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
+  @ApiQuery({
+    name: 'venue_name',
+    required: true,
+    description: 'Nombre del restaurante/venue',
+  })
+  @ApiQuery({
+    name: 'month_number',
+    required: true,
+    description: 'Número de mes (ej: 6 para junio)',
+  })
+  async getIngresosPorCategoriaRestaurante(
+    @Query('company_name') companyName: string,
+    @Query('year') year: string,
+    @Query('venue_name') venueName: string,
+    @Query('month_number') monthNumber: string,
+  ) {
+    if (!companyName || !year || !venueName || !monthNumber) {
+      return {
+        success: false,
+        message:
+          'Faltan parámetros requeridos: company_name, year, venue_name, month_number',
+      };
+    }
+    const sql =
+      'SELECT * from dwh.fn_sales_comparison_by_section($1, $2, null, $3, $4)';
+    return this.syncService.queryExternalKpi(sql, [
+      companyName,
+      year,
+      venueName,
+      monthNumber,
+    ]);
+  }
 }
