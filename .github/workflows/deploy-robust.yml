@@ -1,0 +1,58 @@
+name: Deploy to Production (Robust)
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Deploy to server
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        port: ${{ secrets.PORT }}
+        script: |
+          echo "🚀 Starting deployment..."
+          
+          # Navegar al directorio del proyecto
+          cd ~/api
+          
+          # Hacer backup de la configuración actual
+          cp docker-compose.yml docker-compose.yml.backup
+          
+          # Obtener los últimos cambios
+          echo "📥 Pulling latest changes..."
+          git fetch origin
+          git reset --hard origin/main
+          
+          # Detener contenedores actuales
+          echo "🛑 Stopping current containers..."
+          sudo docker-compose down || true
+          
+          # Limpiar recursos Docker
+          echo "🧹 Cleaning Docker resources..."
+          sudo docker system prune -f
+          
+          # Reconstruir y levantar contenedores
+          echo "🔨 Building and starting containers..."
+          sudo docker-compose build --no-cache
+          sudo docker-compose up -d
+          
+          # Verificar que los contenedores estén funcionando
+          echo "✅ Checking container status..."
+          sleep 10
+          sudo docker-compose ps
+          
+          # Verificar logs del contenedor principal
+          echo "📋 Container logs:"
+          sudo docker-compose logs --tail=20 api
+          
+          echo "🎉 Deployment completed successfully!" 
