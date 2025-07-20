@@ -26,8 +26,8 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   const config = new DocumentBuilder()
-    .setTitle('API de Gestión')
-    .setDescription('Documentación de la API para el sistema de gestión.')
+    .setTitle('API ROCKSTARDATA')
+    .setDescription('Documentación de la API ROCKSTARDATA.')
     .setVersion('1.0')
     .addBearerAuth() // Importante si usas autenticación JWT
     .build();

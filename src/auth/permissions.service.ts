@@ -154,4 +154,151 @@ export class PermissionsService {
     await this.permissionRepository.remove(permission);
     return { message: 'Permission removed successfully' };
   }
+
+  async assignRolePermissions(
+    userId: number,
+    roleName: string,
+    resourceType: ResourceType,
+    resourceId: number,
+  ) {
+    // Verificar que el usuario existe
+    const user = await this.userRepository.findOneBy({ id: userId });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    // Verificar que el recurso existe
+    await this.validateResource(resourceType, resourceId);
+
+    // Definir permisos por rol
+    const rolePermissions = this.getRolePermissions(roleName);
+    
+    const results: Array<{
+      permissionType: PermissionType;
+      success: boolean;
+      data?: UserPermission;
+      error?: string;
+    }> = [];
+    
+    for (const permissionType of rolePermissions) {
+      try {
+        const result = await this.assign({
+          userId,
+          permissionType,
+          resourceType,
+          resourceId,
+        });
+        results.push({ permissionType, success: true, data: result });
+      } catch (error) {
+        if (error instanceof BadRequestException && error.message.includes('already exists')) {
+          results.push({ permissionType, success: false, error: 'Permission already exists' });
+        } else {
+          results.push({ permissionType, success: false, error: error.message });
+        }
+      }
+    }
+
+    return {
+      message: `Role permissions assigned for user ${userId}`,
+      roleName,
+      resourceType,
+      resourceId,
+      results,
+    };
+  }
+
+  private getRolePermissions(roleName: string): PermissionType[] {
+    const rolePermissionsMap = {
+      superadmin: [
+        PermissionType.ViewIncome,
+        PermissionType.ViewSales,
+        PermissionType.CreateSales,
+        PermissionType.UpdateSales,
+        PermissionType.DeleteSales,
+        PermissionType.ViewBusiness,
+        PermissionType.CreateBusiness,
+        PermissionType.UpdateBusiness,
+        PermissionType.DeleteBusiness,
+      ],
+      admin: [
+        PermissionType.ViewIncome,
+        PermissionType.ViewSales,
+        PermissionType.CreateSales,
+        PermissionType.UpdateSales,
+        PermissionType.ViewBusiness,
+        PermissionType.CreateBusiness,
+        PermissionType.UpdateBusiness,
+      ],
+      ceo: [
+        PermissionType.ViewIncome,
+        PermissionType.ViewSales,
+        PermissionType.ViewBusiness,
+      ],
+      user: [
+        PermissionType.ViewSales,
+      ],
+    };
+
+    const permissions = rolePermissionsMap[roleName.toLowerCase()];
+    if (!permissions) {
+      throw new BadRequestException(`Unknown role: ${roleName}`);
+    }
+
+    return permissions;
+  }
+
+  private async validateResource(resourceType: ResourceType, resourceId: number) {
+    switch (resourceType) {
+      case ResourceType.Organization:
+        const org = await this.organizationRepository.findOneBy({ id: resourceId });
+        if (!org) {
+          throw new NotFoundException(`Organization with ID ${resourceId} not found`);
+        }
+        break;
+      case ResourceType.Company:
+        const company = await this.companyRepository.findOneBy({ id: resourceId });
+        if (!company) {
+          throw new NotFoundException(`Company with ID ${resourceId} not found`);
+        }
+        break;
+      case ResourceType.Venue:
+        const venue = await this.venueRepository.findOneBy({ id: resourceId });
+        if (!venue) {
+          throw new NotFoundException(`Venue with ID ${resourceId} not found`);
+        }
+        break;
+      default:
+        throw new BadRequestException(`Invalid resource type: ${resourceType}`);
+    }
+  }
+
+  async removeAllPermissions(userId: number) {
+    // Verificar que el usuario existe
+    const user = await this.userRepository.findOneBy({ id: userId });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    // Obtener todos los permisos del usuario
+    const permissions = await this.permissionRepository.find({
+      where: { user: { id: userId } },
+    });
+
+    if (permissions.length === 0) {
+      return { message: `User ${userId} has no permissions to remove` };
+    }
+
+    // Eliminar todos los permisos
+    await this.permissionRepository.remove(permissions);
+
+    return {
+      message: `All permissions removed from user ${userId}`,
+      removedCount: permissions.length,
+      removedPermissions: permissions.map(p => ({
+        permissionType: p.permissionType,
+        resourceType: p.resourceType,
+        resourceId: p.resourceId,
+      })),
+    };
+  }
 }
