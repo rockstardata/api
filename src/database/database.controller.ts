@@ -171,90 +171,90 @@ export class DatabaseController {
     }
   }
 
-  @Post('create-test-data')
-  async createTestData() {
-    try {
-      // Crear un restaurante de prueba
-      const venue = await this.venueService.create({
-        name: 'Restaurante de Prueba',
-        description: 'Restaurante para pruebas',
-        address: 'Calle Test 123',
-        phone: '123456789',
-        email: 'test@restaurant.com',
-        companyId: 1, // Asumiendo que existe una compañía con ID 1
-      });
+  // @Post('create-test-data')
+  // async createTestData() {
+  //   try {
+  //     // Crear un restaurante de prueba
+  //     const venue = await this.venueService.create({
+  //       name: 'Restaurante de Prueba',
+  //       description: 'Restaurante para pruebas',
+  //       address: 'Calle Test 123',
+  //       phone: '123456789',
+  //       email: 'test@restaurant.com',
+  //       companyId: 1, // Asumiendo que existe una compañía con ID 1
+  //     });
 
-      // Crear ventas de prueba
-      const sales = [
-        {
-          productName: 'Ticket Evento Rock',
-          quantity: 2,
-          price: 50.0,
-          totalAmount: 100.0,
-          venueId: venue.id,
-          createdAt: new Date('2025-01-15'),
-        },
-        {
-          productName: 'Bebidas',
-          quantity: 5,
-          price: 8.0,
-          totalAmount: 40.0,
-          venueId: venue.id,
-          createdAt: new Date('2025-01-20'),
-        },
-        {
-          productName: 'Ticket Evento 2024',
-          quantity: 3,
-          price: 40.0,
-          totalAmount: 120.0,
-          venueId: venue.id,
-          createdAt: new Date('2024-01-15'),
-        },
-      ];
+  //     // Crear ventas de prueba
+  //     const sales = [
+  //       {
+  //         productName: 'Ticket Evento Rock',
+  //         quantity: 2,
+  //         price: 50.0,
+  //         totalAmount: 100.0,
+  //         venueId: venue.id,
+  //         createdAt: new Date('2025-01-15'),
+  //       },
+  //       {
+  //         productName: 'Bebidas',
+  //         quantity: 5,
+  //         price: 8.0,
+  //         totalAmount: 40.0,
+  //         venueId: venue.id,
+  //         createdAt: new Date('2025-01-20'),
+  //       },
+  //       {
+  //         productName: 'Ticket Evento 2024',
+  //         quantity: 3,
+  //         price: 40.0,
+  //         totalAmount: 120.0,
+  //         venueId: venue.id,
+  //         createdAt: new Date('2024-01-15'),
+  //       },
+  //     ];
 
-      // Crear ingresos de prueba
-      const incomes = [
-        {
-          name: 'Venta de tickets evento rock',
-          amount: 100.0,
-          category: 'ticket_sales',
-          status: 'received',
-          date: '2025-01-15',
-          venueId: venue.id,
-        },
-        {
-          name: 'Bar y bebidas',
-          amount: 40.0,
-          category: 'food_beverage',
-          status: 'received',
-          date: '2025-01-20',
-          venueId: venue.id,
-        },
-        {
-          name: 'Venta de tickets evento 2024',
-          amount: 120.0,
-          category: 'ticket_sales',
-          status: 'received',
-          date: '2024-01-15',
-          venueId: venue.id,
-        },
-      ];
+  //     // Crear ingresos de prueba
+  //     const incomes = [
+  //       {
+  //         name: 'Venta de tickets evento rock',
+  //         amount: 100.0,
+  //         category: 'ticket_sales',
+  //         status: 'received',
+  //         date: '2025-01-15',
+  //         venueId: venue.id,
+  //       },
+  //       {
+  //         name: 'Bar y bebidas',
+  //         amount: 40.0,
+  //         category: 'food_beverage',
+  //         status: 'received',
+  //         date: '2025-01-20',
+  //         venueId: venue.id,
+  //       },
+  //       {
+  //         name: 'Venta de tickets evento 2024',
+  //         amount: 120.0,
+  //         category: 'ticket_sales',
+  //         status: 'received',
+  //         date: '2024-01-15',
+  //         venueId: venue.id,
+  //       },
+  //     ];
 
-      return {
-        success: true,
-        message: 'Datos de prueba creados correctamente',
-        venue: venue,
-        salesCount: sales.length,
-        incomesCount: incomes.length,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: 'Error creando datos de prueba',
-        error: error.message,
-      };
-    }
-  }
+  //     return {
+  //       success: true,
+  //       message: 'Datos de prueba creados correctamente',
+  //       venue: venue,
+  //       salesCount: sales.length,
+  //       incomesCount: incomes.length,
+  //     };
+  //   } catch (error) {
+  //     return {
+  //       success: false,
+  //       message: 'Error creando datos de prueba',
+  //       error: error.message,
+  //     };
+  //   }
+  // }
 
   /**
    * KPI: Beneficio Estimado
