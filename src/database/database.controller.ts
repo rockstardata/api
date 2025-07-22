@@ -1051,6 +1051,7 @@ export class DatabaseController {
         };
       }
       const sql = 'SELECT * from dwh.fn_sales_comparison_by_section($1, $2, $3, null, $4)';
+      console.log(sql);
       return await this.syncService.queryExternalKpi(sql, [
         companyName,
         year,
