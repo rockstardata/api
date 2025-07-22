@@ -19,7 +19,7 @@ export class DatabaseController {
     @Optional()
     @InjectDataSource('external')
     private readonly externalDataSource?: DataSource,
-  ) {}
+  ) { }
 
   @Post('sync-all')
   async syncAll() {
@@ -983,6 +983,7 @@ export class DatabaseController {
     required: true,
     description: 'Nombre de la compañía',
   })
+
   @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   @ApiQuery({
     name: 'month_number',
@@ -991,6 +992,7 @@ export class DatabaseController {
   })
   async getIngresosPorCategoria(
     @Query('company_name') companyName: string,
+
     @Query('year') year: string,
     @Query('month_number') monthNumber: string,
   ) {
@@ -1019,7 +1021,7 @@ export class DatabaseController {
   @ApiOperation({
     summary: 'Ingresos por categoría (un restaurante)',
     description:
-      'Ejecuta: SELECT * from dwh.fn_sales_comparison_by_section($1, $2, null, null, $3)',
+      'Ejecuta: SELECT * from dwh.fn_sales_comparison_by_section($1, $2, $3, null, $4)',
   })
   @ApiQuery({
     name: 'company_name',
@@ -1028,6 +1030,11 @@ export class DatabaseController {
   })
   @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   @ApiQuery({
+    name: 'venue_name',
+    required: true,
+    description: 'Nombre del restaurante/venue',
+  })
+  @ApiQuery({
     name: 'month_number',
     required: true,
     description: 'Número de mes (ej: 6 para junio)',
@@ -1035,21 +1042,31 @@ export class DatabaseController {
   async getIngresosPorCategoriaRestaurante(
     @Query('company_name') companyName: string,
     @Query('year') year: string,
+    @Query('venue_name') venueName: string,
     @Query('month_number') monthNumber: string,
   ) {
-    if (!companyName || !year || !monthNumber) {
+    try {
+      if (!companyName || !year || !venueName || !monthNumber) {
+        return {
+          success: false,
+          message: 'Faltan parámetros requeridos: company_name, venue_name, year, month_number',
+        };
+      }
+      const sql = 'SELECT * from dwh.fn_sales_comparison_by_section($1, $2, $3, null, $4)';
+      return await this.syncService.queryExternalKpi(sql, [
+        companyName,
+        year,
+        venueName,
+        monthNumber,
+      ]);
+    } catch (error) {
+      console.error('Error al obtener ingresos por categoría:', error);
       return {
         success: false,
-        message:
-          'Faltan parámetros requeridos: company_name, year, month_number',
+        message: 'Error interno del servidor',
+        error: error.message,
       };
     }
-    const sql =
-      'SELECT * from dwh.fn_sales_comparison_by_section($1, $2, null, null, $3)';
-    return this.syncService.queryExternalKpi(sql, [
-      companyName,
-      year,
-      monthNumber,
-    ]);
   }
+
 }
