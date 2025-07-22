@@ -983,7 +983,6 @@ export class DatabaseController {
     required: true,
     description: 'Nombre de la compañía',
   })
-
   @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   @ApiQuery({
     name: 'month_number',
@@ -992,7 +991,6 @@ export class DatabaseController {
   })
   async getIngresosPorCategoria(
     @Query('company_name') companyName: string,
-
     @Query('year') year: string,
     @Query('month_number') monthNumber: string,
   ) {
@@ -1014,7 +1012,7 @@ export class DatabaseController {
 
   /**
    * Ingresos por categoría (un restaurante)
-   * Query: SELECT * from dwh.fn_sales_comparison_by_section($1, $2, null, null, $3)
+   * Query: SELECT * from dwh.fn_sales_comparison_by_section($1, $2, $3, null, $4)
    * Params: company_name, year, month_number
    */
   @Get('kpi/ingresos-por-categoria-restaurante')
@@ -1068,5 +1066,4 @@ export class DatabaseController {
       };
     }
   }
-
 }
