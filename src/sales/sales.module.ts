@@ -8,10 +8,7 @@ import { AuthModule } from 'src/auth/auth.module';
 import { SyncService } from '../database/sync.service';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Sale, Venue]),
-    AuthModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Sale, Venue]), AuthModule],
   controllers: [SalesController],
   providers: [SalesService, SyncService],
   exports: [SalesService],

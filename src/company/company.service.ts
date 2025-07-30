@@ -14,23 +14,28 @@ export class CompanyService {
     private readonly syncService: SyncService,
   ) {}
 
-  async create(createCompanyDto: CreateCompanyDto, userId?: number): Promise<Company> {
+  async create(
+    createCompanyDto: CreateCompanyDto,
+    userId?: number,
+  ): Promise<Company> {
     const companyData: Partial<Company> = {
       ...createCompanyDto,
     };
-    
+
     if (userId) {
       companyData.createdBy = { id: userId } as any;
     }
-    
+
     const company = this.companyRepository.create(companyData);
     const savedCompany = await this.companyRepository.save(company);
-    
+
     // Sincronizar con base de datos externa de forma asíncrona
-    this.syncService.syncEntity('Company', 'create', savedCompany).catch(error => {
-      console.error('Failed to sync company creation to external DB:', error);
-    });
-    
+    this.syncService
+      .syncEntity('Company', 'create', savedCompany)
+      .catch((error) => {
+        console.error('Failed to sync company creation to external DB:', error);
+      });
+
     return savedCompany;
   }
 
@@ -45,33 +50,38 @@ export class CompanyService {
       where: { id },
       relations: ['organization', 'createdBy', 'venues'],
     });
-    
+
     if (!company) {
       throw new NotFoundException(`Company with ID ${id} not found`);
     }
-    
+
     return company;
   }
 
-  async update(id: number, updateCompanyDto: UpdateCompanyDto): Promise<Company> {
+  async update(
+    id: number,
+    updateCompanyDto: UpdateCompanyDto,
+  ): Promise<Company> {
     const company = await this.findOne(id);
     Object.assign(company, updateCompanyDto);
     const updatedCompany = await this.companyRepository.save(company);
-    
+
     // Sincronizar con base de datos externa de forma asíncrona
-    this.syncService.syncEntity('Company', 'update', updatedCompany).catch(error => {
-      console.error('Failed to sync company update to external DB:', error);
-    });
-    
+    this.syncService
+      .syncEntity('Company', 'update', updatedCompany)
+      .catch((error) => {
+        console.error('Failed to sync company update to external DB:', error);
+      });
+
     return updatedCompany;
   }
 
   async remove(id: number): Promise<void> {
     const company = await this.findOne(id);
     await this.companyRepository.remove(company);
-    
+
     // Sincronizar eliminación con base de datos externa de forma asíncrona
-    this.syncService.syncEntity('Company', 'delete', { id }).catch(error => {
+    this.syncService.syncEntity('Company', 'delete', { id }).catch((error) => {
       console.error('Failed to sync company deletion to external DB:', error);
     });
   }
@@ -82,4 +92,4 @@ export class CompanyService {
       relations: ['organization', 'createdBy', 'venues'],
     });
   }
-} 
+}

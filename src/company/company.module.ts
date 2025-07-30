@@ -11,4 +11,4 @@ import { SyncService } from '../database/sync.service';
   providers: [CompanyService, SyncService],
   exports: [CompanyService],
 })
-export class CompanyModule {} 
+export class CompanyModule {}

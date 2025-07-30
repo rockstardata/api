@@ -17,7 +17,13 @@ import { User } from 'src/users/entities/user.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserPermission, User, Organization, Venue, Company]),
+    TypeOrmModule.forFeature([
+      UserPermission,
+      User,
+      Organization,
+      Venue,
+      Company,
+    ]),
     UsersModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({

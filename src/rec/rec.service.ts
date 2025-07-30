@@ -1,41 +1,84 @@
-import { Injectable, Optional } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
+import { Injectable } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
+
+export interface Payment {
+  amount: number;
+  type: string;
+  deleted?: boolean;
+}
+
+export interface Bill {
+  payments?: Payment[];
+}
+
+export interface TabData {
+  id: string;
+  bills?: Bill[];
+  [key: string]: any;
+}
+
+export interface PaymentSummary {
+  tabId: string;
+  totalAmount: number;
+  paymentCount: number;
+  payments: {
+    amount: number;
+    type: string;
+  }[];
+}
 
 @Injectable()
 export class RecService {
-  constructor(
-    @Optional()
-    @InjectDataSource('external')
-    private readonly externalDataSource?: DataSource,
-  ) {
-    console.log('RecService externalDataSource:', !!externalDataSource);
+  private readonly API_BASE_URL = 'https://api.last.app/v2';
+  private readonly AUTH_TOKEN = '2bd95fcf-31dd-410a-88af-23330e7762e4';
+
+  constructor(private readonly httpService: HttpService) {}
+
+  private getHeaders(locationId: string) {
+    return {
+      Authorization: `Bearer ${this.AUTH_TOKEN}`,
+      locationId,
+    };
   }
 
-  async queryExternalDb(sql: string): Promise<any> {
-    if (!this.externalDataSource) {
-      throw new Error('No hay conexión configurada a la base de datos externa');
-    }
-    return this.externalDataSource.query(sql);
-  }
-
-  async getBeneficioEstimado(companyName: string, year: number, weekNumber: number): Promise<any> {
-    if (!this.externalDataSource) {
-      throw new Error('No hay conexión configurada a la base de datos externa');
-    }
-    const sql = 'SELECT * from dwh.fn_estimated_profit_by_company_and_period($1, $2, $3, null)';
-    return this.externalDataSource.query(sql, [companyName, year, weekNumber]);
-  }
-
-  async testExternalConnection(): Promise<any> {
-    if (!this.externalDataSource) {
-      return { success: false, message: 'No hay conexión configurada a la base de datos externa' };
-    }
+  async getTabById(tabId: string, locationId: string): Promise<TabData> {
     try {
-      await this.externalDataSource.query('SELECT 1');
-      return { success: true, message: 'Conexión a la base de datos externa exitosa desde RecService' };
+      const url = `${this.API_BASE_URL}/tabs/${tabId}`;
+      const { data } = await firstValueFrom(
+        this.httpService.get<TabData>(url, {
+          headers: this.getHeaders(locationId),
+        })
+      );
+      return data;
     } catch (error) {
-      return { success: false, message: 'Error al conectar a la base de datos externa desde RecService', error: error.message };
+      throw new Error(`Error fetching tab data: ${error.message}`);
     }
   }
-} 
+
+  async calculatePayments(tabId: string, locationId: string): Promise<PaymentSummary> {
+    const tabData = await this.getTabById(tabId, locationId);
+    
+    let totalAmount = 0;
+    const payments: { amount: number; type: string }[] = [];
+
+    tabData.bills?.forEach(bill => {
+      bill.payments?.forEach(payment => {
+        if (!payment.deleted && payment.amount) {
+          totalAmount += payment.amount;
+          payments.push({
+            amount: payment.amount,
+            type: payment.type || 'unknown'
+          });
+        }
+      });
+    });
+
+    return {
+      tabId: tabData.id,
+      totalAmount,
+      paymentCount: payments.length,
+      payments
+    };
+  }
+}

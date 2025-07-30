@@ -1,10 +1,10 @@
-// entities/user.entity.ts
 import { Entity, OneToMany, PrimaryGeneratedColumn, Column } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { OrganizationUser } from 'src/organization/entities/organizationUser.entity';
 import { UserVenueRole } from './user-venue-role.entity';
 import { UserPermission } from 'src/auth/entities/user-permission.entity';
 import { UserPermissionLevel } from './user-permission-level.entity';
+import { UserCompanyRole } from './user-company-role.entity';
 
 @Entity()
 export class User {
@@ -30,6 +30,9 @@ export class User {
   )
   organizationUsers: OrganizationUser[];
 
+  @OneToMany(() => UserCompanyRole, (userCompanyRole) => userCompanyRole.user)
+  userCompanyRoles: UserCompanyRole[];
+
   @OneToMany(() => UserVenueRole, (userVenueRole) => userVenueRole.user)
   userVenueRoles: UserVenueRole[];
 
@@ -37,6 +40,10 @@ export class User {
   permissions: UserPermission[];
 
   // Nuevos permisos por nivel jerárquico
-  @OneToMany(() => UserPermissionLevel, (permissionLevel) => permissionLevel.user)
+  @OneToMany(
+    () => UserPermissionLevel,
+    (permissionLevel) => permissionLevel.user,
+  )
   permissionLevels: UserPermissionLevel[];
 }
+

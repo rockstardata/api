@@ -1,15 +1,11 @@
 import { Module } from '@nestjs/common';
-import { RecController } from './rec.controller';
+import { HttpModule } from '@nestjs/axios';
 import { RecService } from './rec.service';
-import { DatabaseModule } from '../database/database.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { PaymentsController } from './rec.controller';
 
 @Module({
-    imports: [
-        DatabaseModule,
-        TypeOrmModule.forFeature([], 'external'),
-    ],
-    controllers: [RecController],
-    providers: [RecService],
+  imports: [HttpModule],
+  controllers: [PaymentsController],
+  providers: [RecService],
 })
-export class RecModule { } 
+export class RecModule {}

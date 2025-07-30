@@ -19,7 +19,7 @@ export class DatabaseController {
     @Optional()
     @InjectDataSource('external')
     private readonly externalDataSource?: DataSource,
-  ) { }
+  ) {}
 
   @Post('sync-all')
   async syncAll() {
@@ -271,14 +271,14 @@ export class DatabaseController {
     name: 'company_name',
     required: true,
     description: 'Nombre de la compañía',
-    example: 'PALLAPIZZA'
+    example: 'PALLAPIZZA',
   })
   @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   @ApiQuery({
     name: 'week_number',
     required: true,
     description: 'Número de semana (ej: 11)',
-    example: '11'
+    example: '11',
   })
   async getBeneficioEstimado(
     @Query('company_name') companyName: string,
@@ -316,14 +316,14 @@ export class DatabaseController {
     name: 'company_name',
     required: true,
     description: 'Nombre de la compañía',
-    example: 'PALLAPIZZA'
+    example: 'PALLAPIZZA',
   })
   @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   @ApiQuery({
     name: 'week_number',
     required: true,
     description: 'Número de semana (ej: 11)',
-    example: '11'
+    example: '11',
   })
   async getIngresosTotales(
     @Query('company_name') companyName: string,
@@ -360,14 +360,14 @@ export class DatabaseController {
     name: 'company_name',
     required: true,
     description: 'Nombre de la compañía',
-    example: 'PALLAPIZZA'
+    example: 'PALLAPIZZA',
   })
   @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   @ApiQuery({
     name: 'month_number',
     required: true,
     description: 'Número de mes (ej: 6 para junio)',
-    example: '6'
+    example: '6',
   })
   async getGastosTotales(
     @Query('company_name') companyName: string,
@@ -405,14 +405,14 @@ export class DatabaseController {
     name: 'company_name',
     required: true,
     description: 'Nombre de la compañía',
-    example: 'PALLAPIZZA'
+    example: 'PALLAPIZZA',
   })
   @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   @ApiQuery({
     name: 'week_number',
     required: true,
     description: 'Número de semana (ej: 11)',
-    example: '11'
+    example: '11',
   })
   async getBeneficioEstimadoPorLocal(
     @Query('company_name') companyName: string,
@@ -450,14 +450,14 @@ export class DatabaseController {
     name: 'company_name',
     required: true,
     description: 'Nombre de la compañía',
-    example: 'PALLAPIZZA'
+    example: 'PALLAPIZZA',
   })
   @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   @ApiQuery({
     name: 'month_number',
     required: true,
     description: 'Número de mes (ej: 6 para junio)',
-    example: '6'
+    example: '6',
   })
   async getGastosTotalesPorCategoria(
     @Query('company_name') companyName: string,
@@ -495,14 +495,14 @@ export class DatabaseController {
     name: 'company_name',
     required: true,
     description: 'Nombre de la compañía',
-    example: 'PALLAPIZZA'
+    example: 'PALLAPIZZA',
   })
   @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   @ApiQuery({
     name: 'week_number',
     required: true,
     description: 'Número de semana (ej: 11)',
-    example: '11'
+    example: '11',
   })
   async getIngresosPorTurno(
     @Query('company_name') companyName: string,
@@ -540,7 +540,7 @@ export class DatabaseController {
     name: 'company_name',
     required: true,
     description: 'Nombre de la compañía',
-    example: 'PALLAPIZZA'
+    example: 'PALLAPIZZA',
   })
   @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   @ApiQuery({
@@ -552,7 +552,7 @@ export class DatabaseController {
     name: 'week_number',
     required: true,
     description: 'Número de semana (ej: 11)',
-    example: '11'
+    example: '11',
   })
   async getRatioPersonal(
     @Query('company_name') companyName: string,
@@ -560,7 +560,8 @@ export class DatabaseController {
     @Query('venue_name') venueName: string,
     @Query('week_number') weekNumber: string,
   ) {
-    if (!companyName || !year || !weekNumber) { // quitamos venueName de la validación obligatoria
+    if (!companyName || !year || !weekNumber) {
+      // quitamos venueName de la validación obligatoria
       return {
         success: false,
         message:
@@ -592,14 +593,14 @@ export class DatabaseController {
     name: 'company_name',
     required: true,
     description: 'Nombre de la compañía',
-    example: 'PALLAPIZZA'
+    example: 'PALLAPIZZA',
   })
   @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   @ApiQuery({
     name: 'week_number',
     required: true,
     description: 'Número de semana (ej: 11)',
-    example: '11'
+    example: '11',
   })
   async getRatioPersonalGeneral(
     @Query('company_name') companyName: string,
@@ -637,13 +638,13 @@ export class DatabaseController {
     name: 'company_name',
     required: true,
     description: 'Nombre de la compañía',
-    example: 'PALLAPIZZA'
+    example: 'PALLAPIZZA',
   })
   @ApiQuery({
     name: 'week_number',
     required: true,
     description: 'Número de semana (ej: 11)',
-    example: '11'
+    example: '11',
   })
   @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   async getComensalesTotales(
@@ -681,13 +682,13 @@ export class DatabaseController {
     name: 'company_name',
     required: true,
     description: 'Nombre de la compañía',
-    example: 'PALLAPIZZA'
+    example: 'PALLAPIZZA',
   })
   @ApiQuery({
     name: 'week_number',
     required: true,
     description: 'Número de semana (ej: 11)',
-    example: '11'
+    example: '11',
   })
   @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   async getIngresosPorRestauranteDiario(
@@ -725,13 +726,13 @@ export class DatabaseController {
     name: 'company_name',
     required: true,
     description: 'Nombre de la compañía',
-    example: 'PALLAPIZZA'
+    example: 'PALLAPIZZA',
   })
   @ApiQuery({
     name: 'week_number',
     required: true,
     description: 'Número de semana (ej: 11)',
-    example: '11'
+    example: '11',
   })
   @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   async getComensalesPorRestauranteDiario(
@@ -769,13 +770,13 @@ export class DatabaseController {
     name: 'company_name',
     required: true,
     description: 'Nombre de la compañía',
-    example: 'PALLAPIZZA'
+    example: 'PALLAPIZZA',
   })
   @ApiQuery({
     name: 'week_number',
     required: true,
     description: 'Número de semana (ej: 11)',
-    example: '11'
+    example: '11',
   })
   @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   async getTicketMedioPorComensal(
@@ -806,7 +807,8 @@ export class DatabaseController {
    */
   @Get('kpi/ticket-medio-por-comensal-restaurante-diario')
   @ApiOperation({
-    summary: 'KPI: Ticket Medio por Comensal y Restaurante (diario) VISTA EXPRES',
+    summary:
+      'KPI: Ticket Medio por Comensal y Restaurante (diario) VISTA EXPRES',
     description:
       'Ejecuta: SELECT * FROM dwh.fn_weekly_avg_ticket_by_venue($1, $2, $3)',
   })
@@ -814,13 +816,13 @@ export class DatabaseController {
     name: 'company_name',
     required: true,
     description: 'Nombre de la compañía',
-    example: 'PALLAPIZZA'
+    example: 'PALLAPIZZA',
   })
   @ApiQuery({
     name: 'week_number',
     required: true,
     description: 'Número de semana (ej: 11)',
-    example: '11'
+    example: '11',
   })
   @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   async getTicketMedioPorComensalRestauranteDiario(
@@ -858,20 +860,20 @@ export class DatabaseController {
     name: 'company_name',
     required: true,
     description: 'Nombre de la compañía',
-    example: 'PALLAPIZZA'
+    example: 'PALLAPIZZA',
   })
   @ApiQuery({
     name: 'venue_name',
     required: true,
     description: 'Nombre del restaurante',
-    example: 'PALLAPIZZA CENTRO'
+    example: 'PALLAPIZZA CENTRO',
   })
   @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   @ApiQuery({
     name: 'month_number',
     required: true,
     description: 'Número de mes (ej: 6 para junio)',
-    example: '6'
+    example: '6',
   })
   async getIngresosTotalesPorRestaurante(
     @Query('company_name') companyName: string,
@@ -911,20 +913,20 @@ export class DatabaseController {
     name: 'company_name',
     required: true,
     description: 'Nombre de la compañía',
-    example: 'PALLAPIZZA'
+    example: 'PALLAPIZZA',
   })
   @ApiQuery({
     name: 'venue_name',
     required: true,
     description: 'Nombre del restaurante/venue',
-    example: 'PALLAPIZZA CENTRO'
+    example: 'PALLAPIZZA CENTRO',
   })
   @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   @ApiQuery({
     name: 'month_number',
     required: true,
     description: 'Número de mes (ej: 6 para junio)',
-    example: '6'
+    example: '6',
   })
   async getGastosTotalesPorRestaurante(
     @Query('company_name') companyName: string,
@@ -964,20 +966,20 @@ export class DatabaseController {
     name: 'company_name',
     required: true,
     description: 'Nombre de la compañía',
-    example: 'PALLAPIZZA'
+    example: 'PALLAPIZZA',
   })
   @ApiQuery({
     name: 'venue_name',
     required: true,
     description: 'Nombre del restaurante/venue',
-    example: 'PALLAPIZZA CENTRO'
+    example: 'PALLAPIZZA CENTRO',
   })
   @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   @ApiQuery({
     name: 'week_number',
     required: true,
     description: 'Número de semana (ej: 11)',
-    example: '11'
+    example: '11',
   })
   async getBeneficioEstimadoPorRestaurante(
     @Query('company_name') companyName: string,
@@ -1017,14 +1019,14 @@ export class DatabaseController {
     name: 'company_name',
     required: true,
     description: 'Nombre de la compañía',
-    example: 'PALLAPIZZA'
+    example: 'PALLAPIZZA',
   })
   @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   @ApiQuery({
     name: 'month_number',
     required: true,
     description: 'Número de mes (ej: 6 para junio)',
-    example: '6'
+    example: '6',
   })
   async getIngresosPorCategoria(
     @Query('company_name') companyName: string,
@@ -1062,20 +1064,20 @@ export class DatabaseController {
     name: 'company_name',
     required: true,
     description: 'Nombre de la compañía',
-    example: 'PALLAPIZZA'
+    example: 'PALLAPIZZA',
   })
   @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
   @ApiQuery({
     name: 'venue_name',
     required: true,
     description: 'Nombre del restaurante/venue',
-    example: 'PALLAPIZZA CENTRO'
+    example: 'PALLAPIZZA CENTRO',
   })
   @ApiQuery({
     name: 'month_number',
     required: true,
     description: 'Número de mes (ej: 6 para junio)',
-    example: '6'
+    example: '6',
   })
   async getIngresosPorCategoriaRestaurante(
     @Query('company_name') companyName: string,
@@ -1087,10 +1089,12 @@ export class DatabaseController {
       if (!companyName || !year || !venueName || !monthNumber) {
         return {
           success: false,
-          message: 'Faltan parámetros requeridos: company_name, venue_name, year, month_number',
+          message:
+            'Faltan parámetros requeridos: company_name, venue_name, year, month_number',
         };
       }
-      const sql = 'SELECT * from dwh.fn_sales_comparison_by_section($1, $2, $3, null, $4)';
+      const sql =
+        'SELECT * from dwh.fn_sales_comparison_by_section($1, $2, $3, null, $4)';
       console.log(sql);
       return await this.syncService.queryExternalKpi(sql, [
         companyName,
@@ -1115,8 +1119,10 @@ export class DatabaseController {
    */
   @Get('resultado-semanal/ingresos-totales-por-restaurante')
   @ApiOperation({
-    summary: 'Resultado Semanal: Ingresos Totales (un restaurante) RESULTADO SEMANAL',
-    description: 'Ejecuta: SELECT * from dwh.get_venue_income_by_period($1, $2, $3, $4, null)',
+    summary:
+      'Resultado Semanal: Ingresos Totales (un restaurante) RESULTADO SEMANAL',
+    description:
+      'Ejecuta: SELECT * from dwh.get_venue_income_by_period($1, $2, $3, $4, null)',
   })
   @ApiQuery({ name: 'company_name', required: true })
   @ApiQuery({ name: 'venue_name', required: true })
@@ -1129,10 +1135,20 @@ export class DatabaseController {
     @Query('week_number') weekNumber: string,
   ) {
     if (!companyName || !venueName || !year || !weekNumber) {
-      return { success: false, message: 'Faltan parámetros requeridos: company_name, venue_name, year, week_number' };
+      return {
+        success: false,
+        message:
+          'Faltan parámetros requeridos: company_name, venue_name, year, week_number',
+      };
     }
-    const sql = 'SELECT * from dwh.get_venue_income_by_period($1, $2, $3, $4, null)';
-    return this.syncService.queryExternalKpi(sql, [companyName, venueName, year, weekNumber]);
+    const sql =
+      'SELECT * from dwh.get_venue_income_by_period($1, $2, $3, $4, null)';
+    return this.syncService.queryExternalKpi(sql, [
+      companyName,
+      venueName,
+      year,
+      weekNumber,
+    ]);
   }
 
   /**
@@ -1142,8 +1158,10 @@ export class DatabaseController {
    */
   @Get('resultado-semanal/gastos-totales')
   @ApiOperation({
-    summary: 'Resultado Semanal: Gastos Totales (todos los restaurantes RESULTADO SEMANAL)',
-    description: 'Ejecuta: SELECT * from dwh.get_debit_variation_by_company_and_period($1, $2, $3, null)',
+    summary:
+      'Resultado Semanal: Gastos Totales (todos los restaurantes RESULTADO SEMANAL)',
+    description:
+      'Ejecuta: SELECT * from dwh.get_debit_variation_by_company_and_period($1, $2, $3, null)',
   })
   @ApiQuery({ name: 'company_name', required: true })
   @ApiQuery({ name: 'year', required: true })
@@ -1154,10 +1172,19 @@ export class DatabaseController {
     @Query('week_number') weekNumber: string,
   ) {
     if (!companyName || !year || !weekNumber) {
-      return { success: false, message: 'Faltan parámetros requeridos: company_name, year, week_number' };
+      return {
+        success: false,
+        message:
+          'Faltan parámetros requeridos: company_name, year, week_number',
+      };
     }
-    const sql = 'SELECT * from dwh.get_debit_variation_by_company_and_period($1, $2, $3, null)';
-    return this.syncService.queryExternalKpi(sql, [companyName, year, weekNumber]);
+    const sql =
+      'SELECT * from dwh.get_debit_variation_by_company_and_period($1, $2, $3, null)';
+    return this.syncService.queryExternalKpi(sql, [
+      companyName,
+      year,
+      weekNumber,
+    ]);
   }
 
   /**
@@ -1167,8 +1194,10 @@ export class DatabaseController {
    */
   @Get('resultado-semanal/gastos-totales-por-restaurante')
   @ApiOperation({
-    summary: 'Resultado Semanal: Gastos Totales (un restaurante) RESULTADO SEMANAL',
-    description: 'Ejecuta: SELECT * from dwh.get_debit_variation_by_venue_and_period($1, $2, $3, $4, null)',
+    summary:
+      'Resultado Semanal: Gastos Totales (un restaurante) RESULTADO SEMANAL',
+    description:
+      'Ejecuta: SELECT * from dwh.get_debit_variation_by_venue_and_period($1, $2, $3, $4, null)',
   })
   @ApiQuery({ name: 'company_name', required: true })
   @ApiQuery({ name: 'venue_name', required: true })
@@ -1181,10 +1210,20 @@ export class DatabaseController {
     @Query('week_number') weekNumber: string,
   ) {
     if (!companyName || !venueName || !year || !weekNumber) {
-      return { success: false, message: 'Faltan parámetros requeridos: company_name, venue_name, year, week_number' };
+      return {
+        success: false,
+        message:
+          'Faltan parámetros requeridos: company_name, venue_name, year, week_number',
+      };
     }
-    const sql = 'SELECT * from dwh.get_debit_variation_by_venue_and_period($1, $2, $3, $4, null)';
-    return this.syncService.queryExternalKpi(sql, [companyName, venueName, year, weekNumber]);
+    const sql =
+      'SELECT * from dwh.get_debit_variation_by_venue_and_period($1, $2, $3, $4, null)';
+    return this.syncService.queryExternalKpi(sql, [
+      companyName,
+      venueName,
+      year,
+      weekNumber,
+    ]);
   }
 
   /**
@@ -1194,8 +1233,10 @@ export class DatabaseController {
    */
   @Get('resultado-semanal/ingresos-por-turno-por-restaurante')
   @ApiOperation({
-    summary: 'Resultado Semanal: Ingresos por turno (un restaurante) RESULTADO SEMANAL',
-    description: 'Ejecuta: SELECT * from dwh.fn_sales_comparison_by_section($1, $2, $3, $4, null)',
+    summary:
+      'Resultado Semanal: Ingresos por turno (un restaurante) RESULTADO SEMANAL',
+    description:
+      'Ejecuta: SELECT * from dwh.fn_sales_comparison_by_section($1, $2, $3, $4, null)',
   })
   @ApiQuery({ name: 'company_name', required: true })
   @ApiQuery({ name: 'year', required: true })
@@ -1208,10 +1249,20 @@ export class DatabaseController {
     @Query('week_number') weekNumber: string,
   ) {
     if (!companyName || !year || !venueName || !weekNumber) {
-      return { success: false, message: 'Faltan parámetros requeridos: company_name, year, venue_name, week_number' };
+      return {
+        success: false,
+        message:
+          'Faltan parámetros requeridos: company_name, year, venue_name, week_number',
+      };
     }
-    const sql = 'SELECT * from dwh.fn_sales_comparison_by_section($1, $2, $3, $4, null)';
-    return this.syncService.queryExternalKpi(sql, [companyName, year, venueName, weekNumber]);
+    const sql =
+      'SELECT * from dwh.fn_sales_comparison_by_section($1, $2, $3, $4, null)';
+    return this.syncService.queryExternalKpi(sql, [
+      companyName,
+      year,
+      venueName,
+      weekNumber,
+    ]);
   }
 
   /**
@@ -1221,8 +1272,10 @@ export class DatabaseController {
    */
   @Get('vista-general/ingresos-totales')
   @ApiOperation({
-    summary: 'Vista General: Ingresos Totales (todos los restaurantes) VISTA GENERAL',
-    description: 'Ejecuta: SELECT * from dwh.fn_total_income_by_period($1, $2, null, $3)',
+    summary:
+      'Vista General: Ingresos Totales (todos los restaurantes) VISTA GENERAL',
+    description:
+      'Ejecuta: SELECT * from dwh.fn_total_income_by_period($1, $2, null, $3)',
   })
   @ApiQuery({ name: 'company_name', required: true })
   @ApiQuery({ name: 'year', required: true })
@@ -1233,10 +1286,18 @@ export class DatabaseController {
     @Query('month_number') monthNumber: string,
   ) {
     if (!companyName || !year || !monthNumber) {
-      return { success: false, message: 'Faltan parámetros requeridos: company_name, year, month_number' };
+      return {
+        success: false,
+        message:
+          'Faltan parámetros requeridos: company_name, year, month_number',
+      };
     }
     const sql = 'SELECT * from dwh.fn_total_income_by_period($1, $2, null, $3)';
-    return this.syncService.queryExternalKpi(sql, [companyName, year, monthNumber]);
+    return this.syncService.queryExternalKpi(sql, [
+      companyName,
+      year,
+      monthNumber,
+    ]);
   }
 
   /**
@@ -1246,8 +1307,10 @@ export class DatabaseController {
    */
   @Get('vista-general/ratio-personal')
   @ApiOperation({
-    summary: 'Vista General: Ratio de Personal (todos los restaurantes) VISTA GENERAL',
-    description: 'Ejecuta: SELECT * from dwh.fn_personnel_expense_ratio($1, $2, null, null, $3)',
+    summary:
+      'Vista General: Ratio de Personal (todos los restaurantes) VISTA GENERAL',
+    description:
+      'Ejecuta: SELECT * from dwh.fn_personnel_expense_ratio($1, $2, null, null, $3)',
   })
   @ApiQuery({ name: 'company_name', required: true })
   @ApiQuery({ name: 'year', required: true })
@@ -1258,10 +1321,19 @@ export class DatabaseController {
     @Query('month_number') monthNumber: string,
   ) {
     if (!companyName || !year || !monthNumber) {
-      return { success: false, message: 'Faltan parámetros requeridos: company_name, year, month_number' };
+      return {
+        success: false,
+        message:
+          'Faltan parámetros requeridos: company_name, year, month_number',
+      };
     }
-    const sql = 'SELECT * from dwh.fn_personnel_expense_ratio($1, $2, null, null, $3)';
-    return this.syncService.queryExternalKpi(sql, [companyName, year, monthNumber]);
+    const sql =
+      'SELECT * from dwh.fn_personnel_expense_ratio($1, $2, null, null, $3)';
+    return this.syncService.queryExternalKpi(sql, [
+      companyName,
+      year,
+      monthNumber,
+    ]);
   }
 
   /**
@@ -1272,7 +1344,8 @@ export class DatabaseController {
   @Get('vista-general/ratio-personal-por-restaurante')
   @ApiOperation({
     summary: 'Vista General: Ratio de Personal (un restaurante) VISTA GENERAL',
-    description: 'Ejecuta: SELECT * from dwh.fn_personnel_expense_ratio($1, $2, $3, null, $4)',
+    description:
+      'Ejecuta: SELECT * from dwh.fn_personnel_expense_ratio($1, $2, $3, null, $4)',
   })
   @ApiQuery({ name: 'company_name', required: true })
   @ApiQuery({ name: 'year', required: true })
@@ -1285,9 +1358,19 @@ export class DatabaseController {
     @Query('month_number') monthNumber: string,
   ) {
     if (!companyName || !year || !venueName || !monthNumber) {
-      return { success: false, message: 'Faltan parámetros requeridos: company_name, year, venue_name, month_number' };
+      return {
+        success: false,
+        message:
+          'Faltan parámetros requeridos: company_name, year, venue_name, month_number',
+      };
     }
-    const sql = 'SELECT * from dwh.fn_personnel_expense_ratio($1, $2, $3, null, $4)';
-    return this.syncService.queryExternalKpi(sql, [companyName, year, venueName, monthNumber]);
+    const sql =
+      'SELECT * from dwh.fn_personnel_expense_ratio($1, $2, $3, null, $4)';
+    return this.syncService.queryExternalKpi(sql, [
+      companyName,
+      year,
+      venueName,
+      monthNumber,
+    ]);
   }
 }

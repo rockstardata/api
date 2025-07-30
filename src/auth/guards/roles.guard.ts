@@ -22,7 +22,14 @@ export class RolesGuard implements CanActivate {
       return false;
     }
 
-    const userRoles = user.organizationUsers.map((orgUser) => orgUser.role.name);
+    const userRoles = user.organizationUsers.map(
+      (orgUser) => orgUser.role.name,
+    );
+
+    // Si el usuario es superadmin, siempre tiene acceso
+    if (userRoles.includes(Role.SuperAdmin)) {
+      return true;
+    }
 
     return requiredRoles.some((role) => userRoles.includes(role));
   }

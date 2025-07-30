@@ -1,6 +1,13 @@
 import { OrganizationUser } from 'src/organization/entities/organizationUser.entity';
 import { UserVenueRole } from 'src/users/entities/user-venue-role.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class Role {

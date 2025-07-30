@@ -62,4 +62,4 @@ export class Company {
   // Usuario que creó la compañía
   @ManyToOne(() => User, { nullable: true })
   createdBy: User;
-} 
+}

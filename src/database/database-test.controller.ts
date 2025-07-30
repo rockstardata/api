@@ -1,9 +1,4 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Logger,
-} from '@nestjs/common';
+import { Controller, Post, Get, Logger } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
@@ -21,12 +16,18 @@ export class DatabaseTestController {
     try {
       // Verificar conexión a la base de datos
       await this.dataSource.query('SELECT 1');
-      
+
       // Obtener estadísticas básicas
-      const venueCount = await this.dataSource.query('SELECT COUNT(*) FROM venue');
-      const incomeCount = await this.dataSource.query('SELECT COUNT(*) FROM income');
-      const salesCount = await this.dataSource.query('SELECT COUNT(*) FROM sale');
-      
+      const venueCount = await this.dataSource.query(
+        'SELECT COUNT(*) FROM venue',
+      );
+      const incomeCount = await this.dataSource.query(
+        'SELECT COUNT(*) FROM income',
+      );
+      const salesCount = await this.dataSource.query(
+        'SELECT COUNT(*) FROM sale',
+      );
+
       return {
         success: true,
         message: 'Base de datos conectada correctamente',
@@ -34,7 +35,7 @@ export class DatabaseTestController {
           venues: parseInt(venueCount[0].count),
           incomes: parseInt(incomeCount[0].count),
           sales: parseInt(salesCount[0].count),
-        }
+        },
       };
     } catch (error) {
       return {
@@ -49,8 +50,10 @@ export class DatabaseTestController {
   async createSimpleTestData() {
     try {
       // Verificar si ya existen venues
-      const existingVenues = await this.dataSource.query('SELECT id, name FROM venue LIMIT 5');
-      
+      const existingVenues = await this.dataSource.query(
+        'SELECT id, name FROM venue LIMIT 5',
+      );
+
       if (existingVenues.length === 0) {
         // Crear un venue de prueba si no existe ninguno
         await this.dataSource.query(`
@@ -63,7 +66,7 @@ export class DatabaseTestController {
       const testIncomes = [
         {
           name: 'Venta de tickets evento rock',
-          amount: 100.00,
+          amount: 100.0,
           category: 'ticket_sales',
           status: 'received',
           date: '2025-01-15',
@@ -71,7 +74,7 @@ export class DatabaseTestController {
         },
         {
           name: 'Bar y bebidas',
-          amount: 40.00,
+          amount: 40.0,
           category: 'food_beverage',
           status: 'received',
           date: '2025-01-20',
@@ -79,21 +82,31 @@ export class DatabaseTestController {
         },
         {
           name: 'Venta de tickets evento 2024',
-          amount: 120.00,
+          amount: 120.0,
           category: 'ticket_sales',
           status: 'received',
           date: '2024-01-15',
           venueId: existingVenues.length > 0 ? existingVenues[0].id : 1,
-        }
+        },
       ];
 
       let insertedCount = 0;
       for (const income of testIncomes) {
         try {
-          await this.dataSource.query(`
+          await this.dataSource.query(
+            `
             INSERT INTO income (name, amount, category, status, date, "venueId", "createdAt", "updatedAt")
             VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
-          `, [income.name, income.amount, income.category, income.status, income.date, income.venueId]);
+          `,
+            [
+              income.name,
+              income.amount,
+              income.category,
+              income.status,
+              income.date,
+              income.venueId,
+            ],
+          );
           insertedCount++;
         } catch (error) {
           this.logger.warn(`Error insertando ingreso: ${error.message}`);
@@ -118,7 +131,9 @@ export class DatabaseTestController {
   @Get('venues')
   async getVenues() {
     try {
-      const venues = await this.dataSource.query('SELECT id, name, description FROM venue ORDER BY id');
+      const venues = await this.dataSource.query(
+        'SELECT id, name, description FROM venue ORDER BY id',
+      );
       return {
         success: true,
         venues: venues,
@@ -131,4 +146,4 @@ export class DatabaseTestController {
       };
     }
   }
-} 
+}

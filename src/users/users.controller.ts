@@ -9,10 +9,10 @@ import {
   UseGuards,
   Query,
 } from '@nestjs/common';
-import { 
-  ApiTags, 
-  ApiOperation, 
-  ApiResponse, 
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
   ApiBearerAuth,
   ApiQuery,
 } from '@nestjs/swagger';
@@ -32,7 +32,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Register a new user (Public)',
     description: `
     Register a new user account. This endpoint is public and anyone can create a user account.
@@ -49,15 +49,16 @@ export class UsersController {
     2. User can login but has limited access
     3. Admin assigns role using /users/assign-role
     4. User now has appropriate permissions
-    `
+    `,
   })
-  @ApiResponse({ 
-    status: 201, 
-    description: 'User registered successfully. User can now login but has no permissions until roles are assigned.' 
+  @ApiResponse({
+    status: 201,
+    description:
+      'User registered successfully. User can now login but has no permissions until roles are assigned.',
   })
-  @ApiResponse({ 
-    status: 400, 
-    description: 'Invalid data or user already exists' 
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid data or user already exists',
   })
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
@@ -66,21 +67,21 @@ export class UsersController {
   @Get()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(RoleEnum.SuperAdmin, RoleEnum.Admin, RoleEnum.CEO)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get all users',
-    description: 'Retrieve all users in the system'
+    description: 'Retrieve all users in the system',
   })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Users retrieved successfully' 
+  @ApiResponse({
+    status: 200,
+    description: 'Users retrieved successfully',
   })
-  @ApiResponse({ 
-    status: 401, 
-    description: 'Unauthorized' 
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
   })
-  @ApiResponse({ 
-    status: 403, 
-    description: 'Forbidden - Insufficient permissions' 
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Insufficient permissions',
   })
   findAll() {
     return this.usersService.findAll();
@@ -89,25 +90,25 @@ export class UsersController {
   @Get(':id')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(RoleEnum.SuperAdmin, RoleEnum.Admin, RoleEnum.CEO)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get user by ID',
-    description: 'Retrieve a specific user by their ID'
+    description: 'Retrieve a specific user by their ID',
   })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'User retrieved successfully' 
+  @ApiResponse({
+    status: 200,
+    description: 'User retrieved successfully',
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'User not found' 
+  @ApiResponse({
+    status: 404,
+    description: 'User not found',
   })
-  @ApiResponse({ 
-    status: 401, 
-    description: 'Unauthorized' 
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
   })
-  @ApiResponse({ 
-    status: 403, 
-    description: 'Forbidden - Insufficient permissions' 
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Insufficient permissions',
   })
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(+id);
@@ -116,25 +117,26 @@ export class UsersController {
   @Patch(':id')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(RoleEnum.SuperAdmin, RoleEnum.Admin)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Update user',
-    description: 'Update an existing user. Only SuperAdmin and Admin can update users.'
+    description:
+      'Update an existing user. Only SuperAdmin and Admin can update users.',
   })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'User updated successfully' 
+  @ApiResponse({
+    status: 200,
+    description: 'User updated successfully',
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'User not found' 
+  @ApiResponse({
+    status: 404,
+    description: 'User not found',
   })
-  @ApiResponse({ 
-    status: 401, 
-    description: 'Unauthorized' 
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
   })
-  @ApiResponse({ 
-    status: 403, 
-    description: 'Forbidden - Insufficient permissions' 
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Insufficient permissions',
   })
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(+id, updateUserDto);
@@ -143,25 +145,26 @@ export class UsersController {
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(RoleEnum.SuperAdmin)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Delete user',
-    description: 'Delete a user from the system. Only SuperAdmin can delete users.'
+    description:
+      'Delete a user from the system. Only SuperAdmin can delete users.',
   })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'User deleted successfully' 
+  @ApiResponse({
+    status: 200,
+    description: 'User deleted successfully',
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'User not found' 
+  @ApiResponse({
+    status: 404,
+    description: 'User not found',
   })
-  @ApiResponse({ 
-    status: 401, 
-    description: 'Unauthorized' 
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
   })
-  @ApiResponse({ 
-    status: 403, 
-    description: 'Forbidden - Only SuperAdmin can delete users' 
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Only SuperAdmin can delete users',
   })
   remove(@Param('id') id: string) {
     return this.usersService.remove(+id);
@@ -172,25 +175,26 @@ export class UsersController {
   @Post('assign-role')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(RoleEnum.SuperAdmin, RoleEnum.Admin)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Assign role to user',
-    description: 'Assign a role to a user in an organization or venue. Only SuperAdmin and Admin can assign roles.'
+    description:
+      'Assign a role to a user in an organization or venue. Only SuperAdmin and Admin can assign roles.',
   })
-  @ApiResponse({ 
-    status: 201, 
-    description: 'Role assigned successfully' 
+  @ApiResponse({
+    status: 201,
+    description: 'Role assigned successfully',
   })
-  @ApiResponse({ 
-    status: 400, 
-    description: 'Invalid data or user/role not found' 
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid data or user/role not found',
   })
-  @ApiResponse({ 
-    status: 401, 
-    description: 'Unauthorized' 
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
   })
-  @ApiResponse({ 
-    status: 403, 
-    description: 'Forbidden - Insufficient permissions' 
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Insufficient permissions',
   })
   assignRole(@Body() assignRoleDto: AssignRoleDto) {
     return this.usersService.assignRole(assignRoleDto);
@@ -199,39 +203,40 @@ export class UsersController {
   @Delete('remove-role/:userId')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(RoleEnum.SuperAdmin, RoleEnum.Admin)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Remove role from user',
-    description: 'Remove a role from a user in an organization or venue. Only SuperAdmin and Admin can remove roles.'
+    description:
+      'Remove a role from a user in an organization or venue. Only SuperAdmin and Admin can remove roles.',
   })
-  @ApiQuery({ 
-    name: 'organizationId', 
-    required: false, 
-    description: 'ID of the organization (if removing organization role)' 
+  @ApiQuery({
+    name: 'organizationId',
+    required: false,
+    description: 'ID of the organization (if removing organization role)',
   })
-  @ApiQuery({ 
-    name: 'venueId', 
-    required: false, 
-    description: 'ID of the venue (if removing venue role)' 
+  @ApiQuery({
+    name: 'venueId',
+    required: false,
+    description: 'ID of the venue (if removing venue role)',
   })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Role removed successfully' 
+  @ApiResponse({
+    status: 200,
+    description: 'Role removed successfully',
   })
-  @ApiResponse({ 
-    status: 400, 
-    description: 'Invalid data or user not found' 
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid data or user not found',
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'User or role assignment not found' 
+  @ApiResponse({
+    status: 404,
+    description: 'User or role assignment not found',
   })
-  @ApiResponse({ 
-    status: 401, 
-    description: 'Unauthorized' 
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
   })
-  @ApiResponse({ 
-    status: 403, 
-    description: 'Forbidden - Insufficient permissions' 
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Insufficient permissions',
   })
   removeRole(
     @Param('userId') userId: string,
@@ -248,25 +253,25 @@ export class UsersController {
   @Get('roles/:userId')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(RoleEnum.SuperAdmin, RoleEnum.Admin, RoleEnum.CEO)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get user roles',
-    description: 'Get all roles assigned to a specific user'
+    description: 'Get all roles assigned to a specific user',
   })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'User roles retrieved successfully' 
+  @ApiResponse({
+    status: 200,
+    description: 'User roles retrieved successfully',
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'User not found' 
+  @ApiResponse({
+    status: 404,
+    description: 'User not found',
   })
-  @ApiResponse({ 
-    status: 401, 
-    description: 'Unauthorized' 
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
   })
-  @ApiResponse({ 
-    status: 403, 
-    description: 'Forbidden - Insufficient permissions' 
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Insufficient permissions',
   })
   getUserRoles(@Param('userId') userId: string) {
     return this.usersService.getUserRoles(+userId);
@@ -275,35 +280,36 @@ export class UsersController {
   @Get('by-role/:roleId')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(RoleEnum.SuperAdmin, RoleEnum.Admin)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get users by role',
-    description: 'Get all users assigned to a specific role in an organization or venue'
+    description:
+      'Get all users assigned to a specific role in an organization or venue',
   })
-  @ApiQuery({ 
-    name: 'organizationId', 
-    required: false, 
-    description: 'ID of the organization' 
+  @ApiQuery({
+    name: 'organizationId',
+    required: false,
+    description: 'ID of the organization',
   })
-  @ApiQuery({ 
-    name: 'venueId', 
-    required: false, 
-    description: 'ID of the venue' 
+  @ApiQuery({
+    name: 'venueId',
+    required: false,
+    description: 'ID of the venue',
   })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Users by role retrieved successfully' 
+  @ApiResponse({
+    status: 200,
+    description: 'Users by role retrieved successfully',
   })
-  @ApiResponse({ 
-    status: 400, 
-    description: 'Invalid data or role not found' 
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid data or role not found',
   })
-  @ApiResponse({ 
-    status: 401, 
-    description: 'Unauthorized' 
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
   })
-  @ApiResponse({ 
-    status: 403, 
-    description: 'Forbidden - Insufficient permissions' 
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Insufficient permissions',
   })
   getUsersByRole(
     @Param('roleId') roleId: string,

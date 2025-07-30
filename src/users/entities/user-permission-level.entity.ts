@@ -70,4 +70,4 @@ export class UserPermissionLevel {
   // Usuario que asignó el permiso
   @ManyToOne(() => User, { nullable: true })
   assignedBy: User;
-} 
+}

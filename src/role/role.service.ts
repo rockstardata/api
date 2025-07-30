@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateRoleDto } from './dto/create-role.dto';
@@ -19,7 +23,9 @@ export class RoleService {
     });
 
     if (existingRole) {
-      throw new BadRequestException(`Role with name "${createRoleDto.name}" already exists`);
+      throw new BadRequestException(
+        `Role with name "${createRoleDto.name}" already exists`,
+      );
     }
 
     const role = this.roleRepository.create(createRoleDto);
@@ -62,7 +68,9 @@ export class RoleService {
       });
 
       if (existingRole) {
-        throw new BadRequestException(`Role with name "${updateRoleDto.name}" already exists`);
+        throw new BadRequestException(
+          `Role with name "${updateRoleDto.name}" already exists`,
+        );
       }
     }
 
@@ -79,13 +87,13 @@ export class RoleService {
 
     if (organizationUsersCount > 0 || userVenueRolesCount > 0) {
       throw new BadRequestException(
-        `Cannot delete role "${role.name}" because it is being used by ${organizationUsersCount + userVenueRolesCount} users`
+        `Cannot delete role "${role.name}" because it is being used by ${organizationUsersCount + userVenueRolesCount} users`,
       );
     }
 
     // Soft delete - marcar como inactivo en lugar de eliminar
     await this.roleRepository.update(id, { isActive: false });
-    
+
     return { message: `Role "${role.name}" has been deactivated successfully` };
   }
 
@@ -109,14 +117,15 @@ export class RoleService {
       .orderBy('role.name', 'ASC')
       .getRawMany();
 
-    return roles.map(role => ({
+    return roles.map((role) => ({
       id: role.role_id,
       name: role.role_name,
       description: role.role_description,
       isActive: role.role_isActive,
       createdAt: role.role_createdAt,
       updatedAt: role.role_updatedAt,
-      totalUsers: parseInt(role.organizationUsersCount) + parseInt(role.venueRolesCount),
+      totalUsers:
+        parseInt(role.organizationUsersCount) + parseInt(role.venueRolesCount),
       organizationUsersCount: parseInt(role.organizationUsersCount),
       venueRolesCount: parseInt(role.venueRolesCount),
     }));

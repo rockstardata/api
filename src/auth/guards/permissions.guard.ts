@@ -6,6 +6,7 @@ import { UserPermission } from '../entities/user-permission.entity';
 import { PERMISSIONS_KEY } from '../decorators/check-permissions.decorator';
 import { PermissionType } from '../enums/permission-type.enum';
 import { ResourceType } from '../enums/resource-type.enum';
+import { Role } from 'src/role/enums/role.enum';
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
@@ -16,6 +17,17 @@ export class PermissionsGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest();
+    const user = request.user;
+
+    // Si el usuario es superadmin, conceder acceso total
+    if (
+      user &&
+      user.organizationUsers?.some((ou) => ou.role.name === Role.SuperAdmin)
+    ) {
+      return true;
+    }
+
     const requiredPermission = this.reflector.get<{
       permission: PermissionType;
       resource: ResourceType;
@@ -26,8 +38,6 @@ export class PermissionsGuard implements CanActivate {
       return true; // Si no se requieren permisos, se permite el acceso.
     }
 
-    const request = context.switchToHttp().getRequest();
-    const user = request.user;
     const resourceId = parseInt(
       request.params[requiredPermission.resourceIdParam],
       10,

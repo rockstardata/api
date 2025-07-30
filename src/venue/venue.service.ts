@@ -17,12 +17,14 @@ export class VenueService {
   async create(createVenueDto: CreateVenueDto): Promise<Venue> {
     const venue = this.venueRepository.create(createVenueDto);
     const savedVenue = await this.venueRepository.save(venue);
-    
+
     // Sincronizar con base de datos externa de forma asíncrona
-    this.syncService.syncEntity('Venue', 'create', savedVenue).catch((error) => {
-      console.error('Failed to sync venue creation to external DB:', error);
-    });
-    
+    this.syncService
+      .syncEntity('Venue', 'create', savedVenue)
+      .catch((error) => {
+        console.error('Failed to sync venue creation to external DB:', error);
+      });
+
     return savedVenue;
   }
 
@@ -37,11 +39,11 @@ export class VenueService {
       where: { id },
       relations: ['company'],
     });
-    
+
     if (!venue) {
       throw new NotFoundException(`Venue with ID ${id} not found`);
     }
-    
+
     return venue;
   }
 
@@ -49,19 +51,21 @@ export class VenueService {
     const venue = await this.findOne(id);
     Object.assign(venue, updateVenueDto);
     const updatedVenue = await this.venueRepository.save(venue);
-    
+
     // Sincronizar con base de datos externa de forma asíncrona
-    this.syncService.syncEntity('Venue', 'update', updatedVenue).catch((error) => {
-      console.error('Failed to sync venue update to external DB:', error);
-    });
-    
+    this.syncService
+      .syncEntity('Venue', 'update', updatedVenue)
+      .catch((error) => {
+        console.error('Failed to sync venue update to external DB:', error);
+      });
+
     return updatedVenue;
   }
 
   async remove(id: number): Promise<void> {
     const venue = await this.findOne(id);
     await this.venueRepository.remove(venue);
-    
+
     // Sincronizar eliminación con base de datos externa de forma asíncrona
     this.syncService.syncEntity('Venue', 'delete', { id }).catch((error) => {
       console.error('Failed to sync venue deletion to external DB:', error);

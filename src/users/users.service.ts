@@ -1,10 +1,14 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AssignRoleDto } from './dto/assign-role.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { SyncService } from '../database/sync.service';
 import * as bcrypt from 'bcrypt';
 import { OrganizationUser } from 'src/organization/entities/organizationUser.entity';
@@ -15,6 +19,8 @@ import { Organization } from 'src/organization/entities/organization.entity';
 import { UserPermission } from 'src/auth/entities/user-permission.entity';
 import { PermissionType } from 'src/auth/enums/permission-type.enum';
 import { ResourceType } from 'src/auth/enums/resource-type.enum';
+import { UserCompanyRole } from './entities/user-company-role.entity';
+import { Company } from 'src/company/entities/company.entity';
 
 @Injectable()
 export class UsersService {
@@ -34,7 +40,11 @@ export class UsersService {
     private readonly organizationRepository: Repository<Organization>,
     @InjectRepository(UserPermission)
     private readonly userPermissionRepository: Repository<UserPermission>,
-  ) { }
+    @InjectRepository(UserCompanyRole)
+    private readonly userCompanyRoleRepository: Repository<UserCompanyRole>,
+    @InjectRepository(Company)
+    private readonly companyRepository: Repository<Company>,
+  ) {}
   async create(createUserDto: CreateUserDto) {
     const { password, ...userData } = createUserDto;
     const user = this.userRepository.create({
@@ -44,7 +54,7 @@ export class UsersService {
     const savedUser = await this.userRepository.save(user);
 
     // Sincronizar con base de datos externa de forma asíncrona
-    this.syncService.syncEntity('User', 'create', savedUser).catch(error => {
+    this.syncService.syncEntity('User', 'create', savedUser).catch((error) => {
       console.error('Failed to sync user creation to external DB:', error);
     });
 
@@ -53,11 +63,13 @@ export class UsersService {
 
   async createSuperAdmin(createUserDto: CreateUserDto, organizationId: number) {
     // 1. Verificar/Crear organización si no existe
-    let organization = await this.organizationRepository.findOne({ where: { id: organizationId } });
+    let organization = await this.organizationRepository.findOne({
+      where: { id: organizationId },
+    });
     if (!organization) {
-      organization = this.organizationRepository.create({ 
+      organization = this.organizationRepository.create({
         id: organizationId,
-        name: 'Organización Principal' 
+        name: 'Organización Principal',
       });
       await this.organizationRepository.save(organization);
       console.log(`Organización ${organizationId} creada automáticamente`);
@@ -72,7 +84,9 @@ export class UsersService {
     const savedUser = await this.userRepository.save(user);
 
     // 3. Buscar el rol SuperAdmin
-    let superAdminRole = await this.roleRepository.findOne({ where: { name: 'superadmin' } });
+    let superAdminRole = await this.roleRepository.findOne({
+      where: { name: 'superadmin' },
+    });
     if (!superAdminRole) {
       // Si no existe, lo creamos
       superAdminRole = this.roleRepository.create({ name: 'superadmin' });
@@ -87,63 +101,12 @@ export class UsersService {
     });
     await this.organizationUserRepository.save(orgUser);
 
-    // 5. Asignar todos los permisos al super admin
-    await this.assignAllPermissionsToSuperAdmin(savedUser.id, organizationId);
-
-    // 6. Sincronizar con base externa
-    this.syncService.syncEntity('User', 'create', savedUser).catch(error => {
+    // 5. Sincronizar con base externa
+    this.syncService.syncEntity('User', 'create', savedUser).catch((error) => {
       console.error('Failed to sync user creation to external DB:', error);
     });
 
     return savedUser;
-  }
-
-  private async assignAllPermissionsToSuperAdmin(userId: number, organizationId: number) {
-    // Todos los tipos de permisos disponibles
-    const allPermissions = [
-      PermissionType.ViewIncome,
-      PermissionType.ViewSales,
-      PermissionType.CreateSales,
-      PermissionType.UpdateSales,
-      PermissionType.DeleteSales,
-      PermissionType.ViewBusiness,
-      PermissionType.CreateBusiness,
-      PermissionType.UpdateBusiness,
-      PermissionType.DeleteBusiness,
-    ];
-
-    // Asignar todos los permisos a nivel de organización
-    for (const permissionType of allPermissions) {
-      try {
-        await this.assignPermissionToUser(userId, permissionType, ResourceType.Organization, organizationId);
-      } catch (error) {
-        console.error(`Error assigning permission ${permissionType}:`, error.message);
-      }
-    }
-
-    console.log(`All permissions assigned to super admin user ${userId} for organization ${organizationId}`);
-  }
-
-  private async assignPermissionToUser(userId: number, permissionType: PermissionType, resourceType: ResourceType, resourceId: number) {
-    // Verificar si el permiso ya existe
-    const existingPermission = await this.userPermissionRepository.findOne({
-      where: {
-        user: { id: userId },
-        permissionType,
-        resourceType,
-        resourceId,
-      },
-    });
-
-    if (!existingPermission) {
-      const permission = this.userPermissionRepository.create({
-        user: { id: userId },
-        permissionType,
-        resourceType,
-        resourceId,
-      });
-      await this.userPermissionRepository.save(permission);
-    }
   }
 
   findAll(): Promise<User[]> {
@@ -182,9 +145,11 @@ export class UsersService {
     const updatedUser = await this.userRepository.findOne({ where: { id } });
 
     // Sincronizar con base de datos externa de forma asíncrona
-    this.syncService.syncEntity('User', 'update', updatedUser).catch(error => {
-      console.error('Failed to sync user update to external DB:', error);
-    });
+    this.syncService
+      .syncEntity('User', 'update', updatedUser)
+      .catch((error) => {
+        console.error('Failed to sync user update to external DB:', error);
+      });
 
     return updatedUser;
   }
@@ -193,7 +158,7 @@ export class UsersService {
     await this.userRepository.delete(id);
 
     // Sincronizar eliminación con base de datos externa de forma asíncrona
-    this.syncService.syncEntity('User', 'delete', { id }).catch(error => {
+    this.syncService.syncEntity('User', 'delete', { id }).catch((error) => {
       console.error('Failed to sync user deletion to external DB:', error);
     });
 
@@ -201,77 +166,109 @@ export class UsersService {
   }
 
   async assignRole(assignRoleDto: AssignRoleDto) {
-    const { userId, roleId, organizationId, venueId } = assignRoleDto;
+    const { userId, roleId, organizationId, companyIds, venueIds } =
+      assignRoleDto;
 
-    // Verificar que el usuario existe
+    // Validar que el usuario y el rol existen
     const user = await this.userRepository.findOneBy({ id: userId });
-    if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found`);
-    }
+    if (!user) throw new NotFoundException(`User with ID ${userId} not found`);
 
-    // Verificar que el rol existe
     const role = await this.roleRepository.findOneBy({ id: roleId });
-    if (!role) {
-      throw new NotFoundException(`Role with ID ${roleId} not found`);
+    if (!role) throw new NotFoundException(`Role with ID ${roleId} not found`);
+
+    // Validar que la organización existe
+    const organization = await this.organizationRepository.findOneBy({
+      id: organizationId,
+    });
+    if (!organization)
+      throw new NotFoundException(
+        `Organization with ID ${organizationId} not found`,
+      );
+
+    // Asignar rol a nivel de organización (obligatorio)
+    let orgUser = await this.organizationUserRepository.findOne({
+      where: { user: { id: userId }, organization: { id: organizationId } },
+    });
+
+    if (orgUser) {
+      orgUser.role = role;
+    } else {
+      orgUser = this.organizationUserRepository.create({
+        user: { id: userId },
+        organization: { id: organizationId },
+        role,
+      });
     }
+    await this.organizationUserRepository.save(orgUser);
 
-    // Si se especifica organizationId, asignar rol de organización
-    if (organizationId) {
-      // Verificar que la organización existe
-      const organization = await this.organizationRepository.findOneBy({ id: organizationId });
-      if (!organization) {
-        throw new NotFoundException(`Organization with ID ${organizationId} not found`);
-      }
-
-      // Verificar si ya existe la relación
-      const existingOrgRole = await this.organizationUserRepository.findOne({
-        where: { user: { id: userId }, organization: { id: organizationId } },
+    // Asignar roles a nivel de compañía (opcional)
+    if (companyIds && companyIds.length > 0) {
+      const companies = await this.companyRepository.find({
+        where: {
+          id: In(companyIds),
+          organization: { id: organizationId }, // Validar que las compañías pertenecen a la organización
+        },
       });
 
-      if (existingOrgRole) {
-        // Actualizar el rol existente
-        existingOrgRole.role = role;
-        return await this.organizationUserRepository.save(existingOrgRole);
-      } else {
-        // Crear nueva relación
-        const orgUser = this.organizationUserRepository.create({
-          user: { id: userId },
-          organization: { id: organizationId },
-          role: role,
+      if (companies.length !== companyIds.length) {
+        throw new BadRequestException(
+          'One or more companies are invalid or do not belong to the specified organization.',
+        );
+      }
+
+      for (const company of companies) {
+        let userCompanyRole = await this.userCompanyRoleRepository.findOne({
+          where: { user: { id: userId }, company: { id: company.id } },
         });
-        return await this.organizationUserRepository.save(orgUser);
+
+        if (userCompanyRole) {
+          userCompanyRole.role = role;
+        } else {
+          userCompanyRole = this.userCompanyRoleRepository.create({
+            user: { id: userId },
+            company: { id: company.id },
+            role,
+          });
+        }
+        await this.userCompanyRoleRepository.save(userCompanyRole);
       }
     }
 
-    // Si se especifica venueId, asignar rol de venue
-    if (venueId) {
-      // Verificar que el venue existe
-      const venue = await this.venueRepository.findOneBy({ id: venueId });
-      if (!venue) {
-        throw new NotFoundException(`Venue with ID ${venueId} not found`);
-      }
-
-      // Verificar si ya existe la relación
-      const existingVenueRole = await this.userVenueRoleRepository.findOne({
-        where: { user: { id: userId }, venue: { id: venueId } },
+    // Asignar roles a nivel de local (opcional)
+    if (venueIds && venueIds.length > 0) {
+      const venues = await this.venueRepository.find({
+        where: {
+          id: In(venueIds),
+          company: { organization: { id: organizationId } }, // Validar que los locales pertenecen a la organización
+        },
+        relations: ['company'],
       });
 
-      if (existingVenueRole) {
-        // Actualizar el rol existente
-        existingVenueRole.role = role;
-        return await this.userVenueRoleRepository.save(existingVenueRole);
-      } else {
-        // Crear nueva relación
-        const userVenueRole = this.userVenueRoleRepository.create({
-          user: { id: userId },
-          venue: { id: venueId },
-          role: role,
+      if (venues.length !== venueIds.length) {
+        throw new BadRequestException(
+          'One or more venues are invalid or do not belong to the specified organization.',
+        );
+      }
+
+      for (const venue of venues) {
+        let userVenueRole = await this.userVenueRoleRepository.findOne({
+          where: { user: { id: userId }, venue: { id: venue.id } },
         });
-        return await this.userVenueRoleRepository.save(userVenueRole);
+
+        if (userVenueRole) {
+          userVenueRole.role = role;
+        } else {
+          userVenueRole = this.userVenueRoleRepository.create({
+            user: { id: userId },
+            venue: { id: venue.id },
+            role,
+          });
+        }
+        await this.userVenueRoleRepository.save(userVenueRole);
       }
     }
 
-    throw new BadRequestException('Either organizationId or venueId must be provided');
+    return { message: 'Roles assigned successfully' };
   }
 
   async removeRole(userId: number, organizationId?: number, venueId?: number) {
@@ -283,9 +280,13 @@ export class UsersService {
 
     if (organizationId) {
       // Verificar que la organización existe
-      const organization = await this.organizationRepository.findOneBy({ id: organizationId });
+      const organization = await this.organizationRepository.findOneBy({
+        id: organizationId,
+      });
       if (!organization) {
-        throw new NotFoundException(`Organization with ID ${organizationId} not found`);
+        throw new NotFoundException(
+          `Organization with ID ${organizationId} not found`,
+        );
       }
 
       const orgUser = await this.organizationUserRepository.findOne({
@@ -293,11 +294,15 @@ export class UsersService {
       });
 
       if (!orgUser) {
-        throw new NotFoundException(`User ${userId} is not assigned to organization ${organizationId}`);
+        throw new NotFoundException(
+          `User ${userId} is not assigned to organization ${organizationId}`,
+        );
       }
 
       await this.organizationUserRepository.remove(orgUser);
-      return { message: `Role removed from user ${userId} in organization ${organizationId}` };
+      return {
+        message: `Role removed from user ${userId} in organization ${organizationId}`,
+      };
     }
 
     if (venueId) {
@@ -312,14 +317,20 @@ export class UsersService {
       });
 
       if (!userVenueRole) {
-        throw new NotFoundException(`User ${userId} is not assigned to venue ${venueId}`);
+        throw new NotFoundException(
+          `User ${userId} is not assigned to venue ${venueId}`,
+        );
       }
 
       await this.userVenueRoleRepository.remove(userVenueRole);
-      return { message: `Role removed from user ${userId} in venue ${venueId}` };
+      return {
+        message: `Role removed from user ${userId} in venue ${venueId}`,
+      };
     }
 
-    throw new BadRequestException('Either organizationId or venueId must be provided');
+    throw new BadRequestException(
+      'Either organizationId or venueId must be provided',
+    );
   }
 
   async getUserRoles(userId: number) {
@@ -350,14 +361,14 @@ export class UsersService {
     return {
       userId: userWithRoles.id,
       userEmail: userWithRoles.email,
-      organizationRoles: userWithRoles.organizationUsers.map(ou => ({
+      organizationRoles: userWithRoles.organizationUsers.map((ou) => ({
         organizationId: ou.organization.id,
         organizationName: ou.organization.name,
         roleId: ou.role.id,
         roleName: ou.role.name,
         roleDescription: ou.role.description,
       })),
-      venueRoles: userWithRoles.userVenueRoles.map(uvr => ({
+      venueRoles: userWithRoles.userVenueRoles.map((uvr) => ({
         venueId: uvr.venue.id,
         venueName: uvr.venue.name,
         roleId: uvr.role.id,
@@ -367,7 +378,11 @@ export class UsersService {
     };
   }
 
-  async getUsersByRole(roleId: number, organizationId?: number, venueId?: number) {
+  async getUsersByRole(
+    roleId: number,
+    organizationId?: number,
+    venueId?: number,
+  ) {
     // Verificar que el rol existe
     const role = await this.roleRepository.findOneBy({ id: roleId });
     if (!role) {
@@ -380,7 +395,7 @@ export class UsersService {
         relations: ['user', 'organization'],
       });
 
-      return users.map(ou => ({
+      return users.map((ou) => ({
         userId: ou.user.id,
         userEmail: ou.user.email,
         userFirstName: ou.user.firstName,
@@ -398,7 +413,7 @@ export class UsersService {
         relations: ['user', 'venue'],
       });
 
-      return users.map(uvr => ({
+      return users.map((uvr) => ({
         userId: uvr.user.id,
         userEmail: uvr.user.email,
         userFirstName: uvr.user.firstName,
@@ -410,6 +425,8 @@ export class UsersService {
       }));
     }
 
-    throw new BadRequestException('Either organizationId or venueId must be provided');
+    throw new BadRequestException(
+      'Either organizationId or venueId must be provided',
+    );
   }
 }

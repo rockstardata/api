@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateSaleDto } from './dto/create-sale.dto';
@@ -31,7 +35,7 @@ export class SalesService {
       paymentMethod: createSaleDto.paymentMethod || PaymentMethod.CASH,
       status: createSaleDto.status || SaleStatus.COMPLETED,
       notes: createSaleDto.notes,
-      createdBy: userId ? { id: userId } as User : undefined,
+      createdBy: userId ? ({ id: userId } as User) : undefined,
     };
 
     if (createSaleDto.venueId) {
@@ -39,22 +43,24 @@ export class SalesService {
       const venue = await this.venueRepository.findOne({
         where: { id: createSaleDto.venueId },
       });
-      
+
       if (!venue) {
-        throw new NotFoundException(`Venue with ID ${createSaleDto.venueId} not found`);
+        throw new NotFoundException(
+          `Venue with ID ${createSaleDto.venueId} not found`,
+        );
       }
-      
+
       saleData.venue = { id: createSaleDto.venueId } as any;
     }
-    
+
     const sale = this.saleRepository.create(saleData);
     const savedSale = await this.saleRepository.save(sale);
-    
+
     // Sincronizar con base de datos externa de forma asíncrona
-    this.syncService.syncEntity('Sale', 'create', savedSale).catch(error => {
+    this.syncService.syncEntity('Sale', 'create', savedSale).catch((error) => {
       console.error('Failed to sync sale creation to external DB:', error);
     });
-    
+
     return savedSale;
   }
 
@@ -70,11 +76,12 @@ export class SalesService {
 
     // Si hay userId, verificar permisos
     try {
-      const userPermissions = await this.permissionsService.getUserPermissions(userId);
-      
+      const userPermissions =
+        await this.permissionsService.getUserPermissions(userId);
+
       // Si no tiene permisos específicos, retornar solo sus propias ventas
       const salesPermissions = userPermissions.filter(
-        p => p.permissionType === PermissionType.ViewSales
+        (p) => p.permissionType === PermissionType.ViewSales,
       );
 
       if (salesPermissions.length === 0) {
@@ -82,7 +89,8 @@ export class SalesService {
       }
 
       // Construir query basado en permisos
-      const queryBuilder = this.saleRepository.createQueryBuilder('sale')
+      const queryBuilder = this.saleRepository
+        .createQueryBuilder('sale')
         .leftJoinAndSelect('sale.createdBy', 'createdBy')
         .leftJoinAndSelect('sale.venue', 'venue')
         .take(100) // Limitar resultados
@@ -111,7 +119,10 @@ export class SalesService {
       return await queryBuilder.getMany();
     } catch (error) {
       // Si hay error en permisos, retornar solo las ventas del usuario
-      console.error('Error checking permissions, falling back to user sales:', error);
+      console.error(
+        'Error checking permissions, falling back to user sales:',
+        error,
+      );
       return await this.findByUser(userId);
     }
   }
@@ -121,63 +132,80 @@ export class SalesService {
       where: { id },
       relations: ['createdBy', 'venue'],
     });
-    
+
     if (!sale) {
       throw new NotFoundException(`Sale with ID ${id} not found`);
     }
 
     // Verificar permisos si se proporciona userId
     if (userId && !(await this.canAccessSale(userId, sale))) {
-      throw new ForbiddenException('You do not have permission to access this sale');
+      throw new ForbiddenException(
+        'You do not have permission to access this sale',
+      );
     }
-    
+
     return sale;
   }
 
-  async update(id: number, updateSaleDto: UpdateSaleDto, userId?: number): Promise<Sale> {
+  async update(
+    id: number,
+    updateSaleDto: UpdateSaleDto,
+    userId?: number,
+  ): Promise<Sale> {
     const sale = await this.findOne(id, userId);
-    
+
     // Verificar permisos de actualización
     if (userId && !(await this.hasUpdatePermission(userId, sale))) {
-      throw new ForbiddenException('You do not have permission to update this sale');
+      throw new ForbiddenException(
+        'You do not have permission to update this sale',
+      );
     }
-    
+
     Object.assign(sale, updateSaleDto);
     const updatedSale = await this.saleRepository.save(sale);
-    
+
     // Sincronizar con base de datos externa de forma asíncrona
-    this.syncService.syncEntity('Sale', 'update', updatedSale).catch(error => {
-      console.error('Failed to sync sale update to external DB:', error);
-    });
-    
+    this.syncService
+      .syncEntity('Sale', 'update', updatedSale)
+      .catch((error) => {
+        console.error('Failed to sync sale update to external DB:', error);
+      });
+
     return updatedSale;
   }
 
   async remove(id: number, userId?: number): Promise<void> {
     const sale = await this.findOne(id, userId);
-    
+
     // Verificar permisos de eliminación
     if (userId && !(await this.hasDeletePermission(userId, sale))) {
-      throw new ForbiddenException('You do not have permission to delete this sale');
+      throw new ForbiddenException(
+        'You do not have permission to delete this sale',
+      );
     }
-    
+
     await this.saleRepository.remove(sale);
-    
+
     // Sincronizar eliminación con base de datos externa de forma asíncrona
-    this.syncService.syncEntity('Sale', 'delete', { id }).catch(error => {
+    this.syncService.syncEntity('Sale', 'delete', { id }).catch((error) => {
       console.error('Failed to sync sale deletion to external DB:', error);
     });
   }
 
   async findByVenue(venueId: number, userId?: number): Promise<Sale[]> {
     // Verificar permisos
-    if (userId && !(await this.permissionsService.hasPermission(
-      userId, 
-      PermissionType.ViewSales, 
-      ResourceType.Venue, 
-      venueId
-    ))) {
-      throw new ForbiddenException('You do not have permission to view sales for this venue');
+    if (
+      userId &&
+      !(await this.permissionsService.hasPermission(
+        userId,
+        PermissionType.ViewSales,
+        ResourceType.Venue,
+        venueId,
+      ))
+    ) {
+      throw new ForbiddenException(
+        'You do not have permission to view sales for this venue',
+      );
     }
 
     return await this.saleRepository.find({
@@ -195,7 +223,7 @@ export class SalesService {
 
   async getSalesSummary(venueId?: number, userId?: number): Promise<any> {
     const queryBuilder = this.saleRepository.createQueryBuilder('sale');
-    
+
     if (venueId) {
       queryBuilder.where('sale.venueId = :venueId', { venueId });
     }
@@ -215,13 +243,16 @@ export class SalesService {
     startDate: Date,
     endDate: Date,
     venueId?: number,
-    userId?: number
+    userId?: number,
   ): Promise<Sale[]> {
     const queryBuilder = this.saleRepository
       .createQueryBuilder('sale')
       .leftJoinAndSelect('sale.createdBy', 'createdBy')
       .leftJoinAndSelect('sale.venue', 'venue')
-      .where('sale.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate });
+      .where('sale.createdAt BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      });
 
     if (venueId) {
       queryBuilder.andWhere('sale.venueId = :venueId', { venueId });
@@ -233,7 +264,7 @@ export class SalesService {
   async getSalesByPaymentMethod(
     paymentMethod: PaymentMethod,
     venueId?: number,
-    userId?: number
+    userId?: number,
   ): Promise<Sale[]> {
     const queryBuilder = this.saleRepository
       .createQueryBuilder('sale')
@@ -251,7 +282,7 @@ export class SalesService {
   async getSalesByStatus(
     status: SaleStatus,
     venueId?: number,
-    userId?: number
+    userId?: number,
   ): Promise<Sale[]> {
     const queryBuilder = this.saleRepository
       .createQueryBuilder('sale')
@@ -272,14 +303,19 @@ export class SalesService {
     nextMonth.setMonth(nextMonth.getMonth() + 1, 1); // Primer día del mes siguiente
     nextMonth.setHours(0, 0, 0, 0);
 
-    return this.saleRepository.createQueryBuilder('sale')
+    return this.saleRepository
+      .createQueryBuilder('sale')
       .where('sale.createdAt >= :startDate', { startDate })
       .andWhere('sale.createdAt < :nextMonth', { nextMonth })
       .take(20)
       .getMany();
   }
 
-  async getSalesByMonthAndYear(month: number, year: number, page: number = 1): Promise<Sale[]> {
+  async getSalesByMonthAndYear(
+    month: number,
+    year: number,
+    page: number = 1,
+  ): Promise<Sale[]> {
     // Calcular el primer día del mes
     const startDate = new Date(year, month - 1, 1);
     // Calcular el primer día del mes siguiente
@@ -288,7 +324,8 @@ export class SalesService {
     const take = 10;
     const skip = (page - 1) * take;
 
-    return this.saleRepository.createQueryBuilder('sale')
+    return this.saleRepository
+      .createQueryBuilder('sale')
       .where('sale.createdAt >= :startDate', { startDate })
       .andWhere('sale.createdAt < :endDate', { endDate })
       .take(take)
@@ -308,7 +345,7 @@ export class SalesService {
         userId,
         PermissionType.ViewSales,
         ResourceType.Organization,
-        sale.venue.company.organization.id
+        sale.venue.company.organization.id,
       );
     }
 
@@ -317,7 +354,7 @@ export class SalesService {
         userId,
         PermissionType.ViewSales,
         ResourceType.Company,
-        sale.venue.company.id
+        sale.venue.company.id,
       );
     }
 
@@ -326,18 +363,34 @@ export class SalesService {
         userId,
         PermissionType.ViewSales,
         ResourceType.Venue,
-        sale.venue.id
+        sale.venue.id,
       );
     }
 
     return false;
   }
 
-  private async hasUpdatePermission(userId: number, sale: Sale): Promise<boolean> {
-    return await this.permissionsService.hasPermission(userId, PermissionType.UpdateSales, ResourceType.Venue, sale.venue?.id);
+  private async hasUpdatePermission(
+    userId: number,
+    sale: Sale,
+  ): Promise<boolean> {
+    return await this.permissionsService.hasPermission(
+      userId,
+      PermissionType.UpdateSales,
+      ResourceType.Venue,
+      sale.venue?.id,
+    );
   }
 
-  private async hasDeletePermission(userId: number, sale: Sale): Promise<boolean> {
-    return await this.permissionsService.hasPermission(userId, PermissionType.DeleteSales, ResourceType.Venue, sale.venue?.id);
+  private async hasDeletePermission(
+    userId: number,
+    sale: Sale,
+  ): Promise<boolean> {
+    return await this.permissionsService.hasPermission(
+      userId,
+      PermissionType.DeleteSales,
+      ResourceType.Venue,
+      sale.venue?.id,
+    );
   }
 }

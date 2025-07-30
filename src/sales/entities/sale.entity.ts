@@ -1,10 +1,10 @@
 import { User } from 'src/users/entities/user.entity';
 import { Venue } from 'src/venue/entities/venue.entity';
 import { Business } from 'src/business/entities/business.entity';
-import { 
-  Column, 
-  Entity, 
-  ManyToOne, 
+import {
+  Column,
+  Entity,
+  ManyToOne,
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,

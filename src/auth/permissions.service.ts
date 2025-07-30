@@ -45,7 +45,9 @@ export class PermissionsService {
           `Organization with ID ${resourceId} not found`,
         );
     } else if (resourceType === ResourceType.Company) {
-      const company = await this.companyRepository.findOneBy({ id: resourceId });
+      const company = await this.companyRepository.findOneBy({
+        id: resourceId,
+      });
       if (!company)
         throw new NotFoundException(`Company with ID ${resourceId} not found`);
     } else if (resourceType === ResourceType.Venue) {
@@ -172,14 +174,14 @@ export class PermissionsService {
 
     // Definir permisos por rol
     const rolePermissions = this.getRolePermissions(roleName);
-    
+
     const results: Array<{
       permissionType: PermissionType;
       success: boolean;
       data?: UserPermission;
       error?: string;
     }> = [];
-    
+
     for (const permissionType of rolePermissions) {
       try {
         const result = await this.assign({
@@ -190,10 +192,21 @@ export class PermissionsService {
         });
         results.push({ permissionType, success: true, data: result });
       } catch (error) {
-        if (error instanceof BadRequestException && error.message.includes('already exists')) {
-          results.push({ permissionType, success: false, error: 'Permission already exists' });
+        if (
+          error instanceof BadRequestException &&
+          error.message.includes('already exists')
+        ) {
+          results.push({
+            permissionType,
+            success: false,
+            error: 'Permission already exists',
+          });
         } else {
-          results.push({ permissionType, success: false, error: error.message });
+          results.push({
+            permissionType,
+            success: false,
+            error: error.message,
+          });
         }
       }
     }
@@ -234,9 +247,7 @@ export class PermissionsService {
         PermissionType.ViewSales,
         PermissionType.ViewBusiness,
       ],
-      user: [
-        PermissionType.ViewSales,
-      ],
+      user: [PermissionType.ViewSales],
     };
 
     const permissions = rolePermissionsMap[roleName.toLowerCase()];
@@ -247,18 +258,29 @@ export class PermissionsService {
     return permissions;
   }
 
-  private async validateResource(resourceType: ResourceType, resourceId: number) {
+  private async validateResource(
+    resourceType: ResourceType,
+    resourceId: number,
+  ) {
     switch (resourceType) {
       case ResourceType.Organization:
-        const org = await this.organizationRepository.findOneBy({ id: resourceId });
+        const org = await this.organizationRepository.findOneBy({
+          id: resourceId,
+        });
         if (!org) {
-          throw new NotFoundException(`Organization with ID ${resourceId} not found`);
+          throw new NotFoundException(
+            `Organization with ID ${resourceId} not found`,
+          );
         }
         break;
       case ResourceType.Company:
-        const company = await this.companyRepository.findOneBy({ id: resourceId });
+        const company = await this.companyRepository.findOneBy({
+          id: resourceId,
+        });
         if (!company) {
-          throw new NotFoundException(`Company with ID ${resourceId} not found`);
+          throw new NotFoundException(
+            `Company with ID ${resourceId} not found`,
+          );
         }
         break;
       case ResourceType.Venue:
@@ -294,7 +316,7 @@ export class PermissionsService {
     return {
       message: `All permissions removed from user ${userId}`,
       removedCount: permissions.length,
-      removedPermissions: permissions.map(p => ({
+      removedPermissions: permissions.map((p) => ({
         permissionType: p.permissionType,
         resourceType: p.resourceType,
         resourceId: p.resourceId,

@@ -10,9 +10,23 @@ import { UserVenueRole } from './entities/user-venue-role.entity';
 import { Venue } from '../venue/entities/venue.entity';
 import { Organization } from '../organization/entities/organization.entity';
 import { UserPermission } from '../auth/entities/user-permission.entity';
+import { UserCompanyRole } from './entities/user-company-role.entity';
+import { Company } from 'src/company/entities/company.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, OrganizationUser, Role, UserVenueRole, Venue, Organization, UserPermission])],
+  imports: [
+    TypeOrmModule.forFeature([
+      User,
+      OrganizationUser,
+      Role,
+      UserVenueRole,
+      Venue,
+      Organization,
+      UserPermission,
+      UserCompanyRole,
+      Company,
+    ]),
+  ],
   controllers: [UsersController],
   providers: [UsersService, SyncService],
   exports: [UsersService],

@@ -1,4 +1,12 @@
-import { IsNotEmpty, IsString, IsOptional, IsNumber, IsEnum, IsDateString, IsBoolean } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsEnum,
+  IsDateString,
+  IsBoolean,
+} from 'class-validator';
 import { AgreementStatus, AgreementType } from '../entities/agreement.entity';
 
 export class CreateAgreementDto {

@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsArray,
+  ArrayMinSize,
+} from 'class-validator';
 
 export class AssignRoleDto {
   @ApiProperty({
@@ -19,20 +25,30 @@ export class AssignRoleDto {
   roleId: number;
 
   @ApiProperty({
-    description: 'ID de la organización (requerido para roles de organización)',
+    description: 'ID de la organización a la que pertenece el usuario',
     example: 1,
-    required: false,
   })
   @IsInt()
-  @IsOptional()
-  organizationId?: number;
+  @IsNotEmpty()
+  organizationId: number;
 
   @ApiProperty({
-    description: 'ID del local/venue (requerido para roles de venue)',
-    example: 5,
+    description: 'Lista de IDs de compañías a las que se asignará el rol',
+    example: [1, 2],
     required: false,
   })
-  @IsInt()
+  @IsArray()
   @IsOptional()
-  venueId?: number;
-} 
+  @ArrayMinSize(1)
+  companyIds?: number[];
+
+  @ApiProperty({
+    description: 'Lista de IDs de locales a los que se asignará el rol',
+    example: [5, 6],
+    required: false,
+  })
+  @IsArray()
+  @IsOptional()
+  @ArrayMinSize(1)
+  venueIds?: number[];
+}
