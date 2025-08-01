@@ -634,7 +634,7 @@ export class DatabaseController {
   @ApiOperation({
     summary: 'KPI: Comensales Totales VISTA EXPRES',
     description:
-      'Ejecuta: SELECT * from dwh.fn_total_income_by_period($1, $2, $3,null)',
+      'Ejecuta: SELECT * from dwh.fn_week_total_attendees($1, $2, $3)',
   })
   @ApiQuery({
     name: 'company_name',
@@ -661,14 +661,13 @@ export class DatabaseController {
           'Faltan parámetros requeridos: company_name, week_number, year',
       };
     }
-    const sql = 'SELECT * from dwh.fn_total_income_by_period($1, $2, $3,null)';
+    const sql = 'SELECT * from dwh.fn_week_total_attendees($1, $2, $3)';
     return this.syncService.queryExternalKpi(sql, [
       companyName,
-      year,
       weekNumber,
+      year,
     ]);
   }
-
   /**
    * GET /database/kpi/ingresos-por-restaurante-diario
    * KPI: Ingresos por Restaurante (diario)
