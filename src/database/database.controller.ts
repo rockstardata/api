@@ -1413,9 +1413,9 @@ export class DatabaseController {
    * Vista General: Ratio de Personal (un restaurante, mensual)
    * VISTA GENERAL
    */
-  @Get('vista-general/ratio-personal-por-restaurante')
+  @Get('vista-general/Metri-RH-rp-pg-cd')
   @ApiOperation({
-    summary: 'Vista General: Ratio de Personal (un restaurante) VISTA GENERAL',
+    summary: 'Vista General: Ratio de Personal (un restaurante) Proporcion de gasto sobre ingresos(HR), Coste por Departamento(HR), VISTA GENERAL',
     description:
       'Ejecuta: SELECT * from dwh.fn_personnel_expense_ratio2($1, $2, $3, null, $4)',
   })
