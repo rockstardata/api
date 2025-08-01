@@ -19,7 +19,7 @@ export class DatabaseController {
     @Optional()
     @InjectDataSource('external')
     private readonly externalDataSource?: DataSource,
-  ) {}
+  ) { }
 
   @Post('sync-all')
   async syncAll() {
@@ -166,91 +166,6 @@ export class DatabaseController {
       return {
         success: false,
         message: 'Error al crear SuperAdmin',
-        error: error.message,
-      };
-    }
-  }
-
-  @Post('create-test-data')
-  async createTestData() {
-    try {
-      // Crear un restaurante de prueba
-      const venue = await this.venueService.create({
-        name: 'Restaurante de Prueba',
-        description: 'Restaurante para pruebas',
-        address: 'Calle Test 123',
-        phone: '123456789',
-        email: 'test@restaurant.com',
-        companyId: 1, // Asumiendo que existe una compañía con ID 1
-      });
-
-      // Crear ventas de prueba
-      const sales = [
-        {
-          productName: 'Ticket Evento Rock',
-          quantity: 2,
-          price: 50.0,
-          totalAmount: 100.0,
-          venueId: venue.id,
-          createdAt: new Date('2025-01-15'),
-        },
-        {
-          productName: 'Bebidas',
-          quantity: 5,
-          price: 8.0,
-          totalAmount: 40.0,
-          venueId: venue.id,
-          createdAt: new Date('2025-01-20'),
-        },
-        {
-          productName: 'Ticket Evento 2024',
-          quantity: 3,
-          price: 40.0,
-          totalAmount: 120.0,
-          venueId: venue.id,
-          createdAt: new Date('2024-01-15'),
-        },
-      ];
-
-      // Crear ingresos de prueba
-      const incomes = [
-        {
-          name: 'Venta de tickets evento rock',
-          amount: 100.0,
-          category: 'ticket_sales',
-          status: 'received',
-          date: '2025-01-15',
-          venueId: venue.id,
-        },
-        {
-          name: 'Bar y bebidas',
-          amount: 40.0,
-          category: 'food_beverage',
-          status: 'received',
-          date: '2025-01-20',
-          venueId: venue.id,
-        },
-        {
-          name: 'Venta de tickets evento 2024',
-          amount: 120.0,
-          category: 'ticket_sales',
-          status: 'received',
-          date: '2024-01-15',
-          venueId: venue.id,
-        },
-      ];
-
-      return {
-        success: true,
-        message: 'Datos de prueba creados correctamente',
-        venue: venue,
-        salesCount: sales.length,
-        incomesCount: incomes.length,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: 'Error creando datos de prueba',
         error: error.message,
       };
     }
@@ -434,6 +349,50 @@ export class DatabaseController {
       weekNumber,
     ]);
   }
+  /**
+   * GET /database/kpi/beneficio-estimado-por-local
+   * KPI: Beneficio Estimado General
+   * RESULTADO SEMANAL
+   */
+  @Get('kpi/beneficio-estimado-por-local')
+  @ApiOperation({
+    summary: 'KPI: Beneficio Estimado General RESULTADO SEMANAL',
+    description:
+      'Ejecuta: SELECT * from dwh.fn_estimated_profit_by_company_and_period($1, $2, $3)',
+  })
+  @ApiQuery({
+    name: 'company_name',
+    required: true,
+    description: 'Nombre de la compañía',
+    example: 'PALLAPIZZA',
+  })
+  @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
+  @ApiQuery({
+    name: 'week_number',
+    required: true,
+    description: 'Número de semana (ej: 11)',
+    example: '11',
+  })
+  async getBeneficioEstimadoGeneral(
+    @Query('company_name') companyName: string,
+    @Query('year') year: string,
+    @Query('week_number') weekNumber: string,
+  ) {
+    if (!companyName || !year || !weekNumber) {
+      return {
+        success: false,
+        message:
+          'Faltan parámetros requeridos: company_name, year, week_number',
+      };
+    }
+    const sql =
+      'SELECT * from dwh.fn_estimated_profit_by_company_and_period($1, $2, $3)';
+    return this.syncService.queryExternalKpi(sql, [
+      companyName,
+      year,
+      weekNumber,
+    ]);
+  }
 
   /**
    * GET /database/kpi/gastos-totales-por-categoria
@@ -569,7 +528,7 @@ export class DatabaseController {
       };
     }
     const sql =
-      'SELECT * from dwh.fn_personnel_expense_ratio($1, $2, $3, $4, null)';
+      'SELECT * from dwh.fn_personnel_expense_ratio2($1, $2, $3, $4, null)';
     return this.syncService.queryExternalKpi(sql, [
       companyName,
       year,
@@ -615,7 +574,7 @@ export class DatabaseController {
       };
     }
     const sql =
-      'SELECT * from dwh.fn_personnel_expense_ratio($1, $2, null, $3, null)';
+      'SELECT * from dwh.fn_personnel_expense_ratio2($1, $2, null, $3, null)';
     return this.syncService.queryExternalKpi(sql, [
       companyName,
       year,
@@ -628,11 +587,54 @@ export class DatabaseController {
    * KPI: Comensales Totales
    * VISTA EXPRES
    */
+  @Get('kpi/numero-comensales-por-restaurante')
+  @ApiOperation({
+    summary: 'KPI: Número de Comensales por Restaurante VISTA EXPRES',
+    description:
+      'Ejecuta: SELECT * from dwh.fn_weekly_attendance_by_venue($1, $2, $3)',
+  })
+  @ApiQuery({
+    name: 'company_name',
+    required: true,
+    description: 'Nombre de la compañía',
+    example: 'PALLAPIZZA',
+  })
+  @ApiQuery({
+    name: 'week_number',
+    required: true,
+    description: 'Número de semana (ej: 11)',
+    example: '11',
+  })
+  @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
+  async getNumeroComensales(
+    @Query('company_name') companyName: string,
+    @Query('week_number') weekNumber: string,
+    @Query('year') year: string,
+  ) {
+    if (!companyName || !weekNumber || !year) {
+      return {
+        success: false,
+        message:
+          'Faltan parámetros requeridos: company_name, week_number, year',
+      };
+    }
+    const sql = 'SELECT * from dwh.fn_weekly_attendance_by_venue($1, $2, $3)';
+    return this.syncService.queryExternalKpi(sql, [
+      companyName,
+      weekNumber,
+      year,
+    ]);
+  }
+  /**
+   * GET /database/kpi/comensales-totales
+   * KPI: Comensales Totales
+   * VISTA EXPRES
+   */
   @Get('kpi/comensales-totales')
   @ApiOperation({
     summary: 'KPI: Comensales Totales VISTA EXPRES',
     description:
-      'Ejecuta: SELECT * from dwh.fn_week_total_attendees($1, $2, $3)',
+      'Ejecuta: SELECT * from dwh.fn_total_income_by_period($1, $2, $3,null)',
   })
   @ApiQuery({
     name: 'company_name',
@@ -659,11 +661,11 @@ export class DatabaseController {
           'Faltan parámetros requeridos: company_name, week_number, year',
       };
     }
-    const sql = 'SELECT * from dwh.fn_week_total_attendees($1, $2, $3)';
+    const sql = 'SELECT * from dwh.fn_total_income_by_period($1, $2, $3,null)';
     return this.syncService.queryExternalKpi(sql, [
       companyName,
-      weekNumber,
       year,
+      weekNumber,
     ]);
   }
 
@@ -995,7 +997,7 @@ export class DatabaseController {
       };
     }
     const sql =
-      'SELECT * from dwh.fn_estimated_profit_by_venue_and_period($1, $2, $3, $4, null)';
+      'SELECT * from  dwh.fn_estimated_profit_by_venue_and_period($1, $2, $3, $4, null)';
     return this.syncService.queryExternalKpi(sql, [
       companyName,
       venueName,
@@ -1152,6 +1154,42 @@ export class DatabaseController {
   }
 
   /**
+   * GET /database/resultado-semanal/ingresos-totales-por-restaurante
+   * Resultado Semanal: Ingresos Totales (Todos los restaurantes)
+   * RESULTADO SEMANAL
+   */
+  @Get('resultado-semanal/ingresos-totales-todos-restaurantes')
+  @ApiOperation({
+    summary:
+      'Resultado Semanal: Ingresos Totales (Todos los restaurantes) RESULTADO SEMANAL',
+    description:
+      'Ejecuta: SELECT * from dwh.fn_total_income_by_period($1, $2, $3, null)',
+  })
+  @ApiQuery({ name: 'company_name', required: true })
+  @ApiQuery({ name: 'year', required: true })
+  @ApiQuery({ name: 'week_number', required: true })
+  async getResultadoSemanalIngresosTotales(
+    @Query('company_name') companyName: string,
+    @Query('year') year: string,
+    @Query('week_number') weekNumber: string,
+  ): Promise<any> {
+    if (!companyName || !year || !weekNumber) {
+      return {
+        success: false,
+        message:
+          'Faltan parámetros requeridos: company_name, venue_name, year, week_number',
+      };
+    }
+    const sql =
+      'SELECT * from dwh.fn_total_income_by_period($1, $2, $3, null)';
+    return this.syncService.queryExternalKpi(sql, [
+      companyName,
+      year,
+      weekNumber,
+    ]);
+  }
+
+  /**
    * GET /database/resultado-semanal/gastos-totales
    * Resultado Semanal: Gastos Totales (todos los restaurantes)
    * RESULTADO SEMANAL
@@ -1264,6 +1302,41 @@ export class DatabaseController {
       weekNumber,
     ]);
   }
+  /**
+   * GET /database/resultado-semanal/ingresos-por-turno-por-restaurante
+   * Resultado Semanal: Ingresos por turno (un restaurante)
+   * RESULTADO SEMANAL
+   */
+  @Get('resultado-semanal/ingresos-por-turno-todos-restaurante')
+  @ApiOperation({
+    summary:
+      'Resultado Semanal: Ingresos por turno (todos los restaurantes) RESULTADO SEMANAL',
+    description:
+      'Ejecuta: SELECT * from  dwh.fn_sales_comparison_by_section($1, $2, $3, $4, null)',
+  })
+  @ApiQuery({ name: 'company_name', required: true })
+  @ApiQuery({ name: 'year', required: true })
+  @ApiQuery({ name: 'week_number', required: true })
+  async getResultadoSemanalIngresosPorTurno(
+    @Query('company_name') companyName: string,
+    @Query('year') year: string,
+    @Query('week_number') weekNumber: string,
+  ) {
+    if (!companyName || !year || !weekNumber) {
+      return {
+        success: false,
+        message:
+          'Faltan parámetros requeridos: company_name, year, venue_name, week_number',
+      };
+    }
+    const sql =
+      'SELECT * from dwh.fn_sales_comparison_by_section($1, $2, null, $3, null)';
+    return this.syncService.queryExternalKpi(sql, [
+      companyName,
+      year,
+      weekNumber,
+    ]);
+  }
 
   /**
    * GET /database/vista-general/ingresos-totales
@@ -1310,7 +1383,7 @@ export class DatabaseController {
     summary:
       'Vista General: Ratio de Personal (todos los restaurantes) VISTA GENERAL',
     description:
-      'Ejecuta: SELECT * from dwh.fn_personnel_expense_ratio($1, $2, null, null, $3)',
+      'Ejecuta: SELECT * from dwh.fn_personnel_expense_ratio2($1, $2, null, null, $3)',
   })
   @ApiQuery({ name: 'company_name', required: true })
   @ApiQuery({ name: 'year', required: true })
@@ -1328,7 +1401,7 @@ export class DatabaseController {
       };
     }
     const sql =
-      'SELECT * from dwh.fn_personnel_expense_ratio($1, $2, null, null, $3)';
+      'SELECT * from dwh.fn_personnel_expense_ratio2($1, $2, null, null, $3)';
     return this.syncService.queryExternalKpi(sql, [
       companyName,
       year,
@@ -1345,7 +1418,7 @@ export class DatabaseController {
   @ApiOperation({
     summary: 'Vista General: Ratio de Personal (un restaurante) VISTA GENERAL',
     description:
-      'Ejecuta: SELECT * from dwh.fn_personnel_expense_ratio($1, $2, $3, null, $4)',
+      'Ejecuta: SELECT * from dwh.fn_personnel_expense_ratio2($1, $2, $3, null, $4)',
   })
   @ApiQuery({ name: 'company_name', required: true })
   @ApiQuery({ name: 'year', required: true })
@@ -1365,7 +1438,75 @@ export class DatabaseController {
       };
     }
     const sql =
-      'SELECT * from dwh.fn_personnel_expense_ratio($1, $2, $3, null, $4)';
+      'SELECT * from dwh.fn_personnel_expense_ratio2($1, $2, $3, null, $4)';
+    return this.syncService.queryExternalKpi(sql, [
+      companyName,
+      year,
+      venueName,
+      monthNumber,
+    ]);
+  }
+
+  /// Vista General: Coste por Departamento (HR) VISTA GENERAL
+  @Get('vista-general/Coste-por-departamento')
+  @ApiOperation({
+    summary: 'Vista General: Coste por Departamento (HR) VISTA GENERAL',
+    description:
+      'Ejecuta: SELECT * from dwh.fn_personnel_expense_ratio2(:p_company_name, :p_year, :p_venue_name, null, :p_month_number);',
+  })
+  @ApiQuery({ name: 'company_name', required: true })
+  @ApiQuery({ name: 'year', required: true })
+  @ApiQuery({ name: 'venue_name', required: true })
+  @ApiQuery({ name: 'month_number', required: true })
+  async getVistaGeneralCostePorDepartamento(
+    @Query('company_name') companyName: string,
+    @Query('year') year: string,
+    @Query('venue_name') venueName: string,
+    @Query('month_number') monthNumber: string,
+  ) {
+    if (!companyName || !year || !venueName || !monthNumber) {
+      return {
+        success: false,
+        message:
+          'Faltan parámetros requeridos: company_name, year, venue_name, month_number',
+      };
+    }
+    const sql =
+      'SELECT * from dwh.fn_personnel_expense_ratio2($1, $2, $3, null, $4)';
+    return this.syncService.queryExternalKpi(sql, [
+      companyName,
+      year,
+      venueName,
+      monthNumber,
+    ]);
+  }
+
+  //
+  @Get('vista-general/Proporcion-gastos-sobre-ingresos')
+  @ApiOperation({
+    summary: 'Vista General: Proporcion de gasto sobre ingresos (HR) VISTA GENERAL',
+    description:
+      'Ejecuta: SELECT * from dwh.fn_personnel_expense_ratio2(:p_company_name, :p_year, :p_venue_name, null, :p_month_number);',
+  })
+  @ApiQuery({ name: 'company_name', required: true })
+  @ApiQuery({ name: 'year', required: true })
+  @ApiQuery({ name: 'venue_name', required: true })
+  @ApiQuery({ name: 'month_number', required: true })
+  async getVistaGeneralProporcionGastosSobreIngresos(
+    @Query('company_name') companyName: string,
+    @Query('year') year: string,
+    @Query('venue_name') venueName: string,
+    @Query('month_number') monthNumber: string,
+  ) {
+    if (!companyName || !year || !venueName || !monthNumber) {
+      return {
+        success: false,
+        message:
+          'Faltan parámetros requeridos: company_name, year, venue_name, month_number',
+      };
+    }
+    const sql =
+      'SELECT * from dwh.fn_personnel_expense_ratio2($1, $2, $3, null, $4)';
     return this.syncService.queryExternalKpi(sql, [
       companyName,
       year,

@@ -16,13 +16,13 @@ export class PaymentsController {
   @ApiParam({
     name: 'tabId',
     description: 'ID of the tab to query',
-    example: '8fb95851-e399-49dc-93ed-42480b653762'
+    example: '8fb95851-e399-49dc-93ed-42480b653762',
   })
   @ApiQuery({
     name: 'locationId',
     required: true,
     description: 'Location ID associated with the tab',
-    example: 'c672e0e5-5dea-45ab-94b0-e67f396f355c'
+    example: 'c672e0e5-5dea-45ab-94b0-e67f396f355c',
   })
   @ApiResponse({
     status: 200,
