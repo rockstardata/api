@@ -1545,4 +1545,44 @@ export class DatabaseController {
       monthNumber,
     ]);
   }
+  //RESULTADO SEMANAL: Gastos Totales por Categoría
+  @Get('kpi/gastos-totales-por-categoria-resultado-semanal')
+  @ApiOperation({
+  summary: 'KPI: Gastos Totales por Categoría RESULTADO SEMANAL',
+    description:
+      'Ejecuta: SELECT * from dwh.get_debit_variation_by_company_and_period($1, $2, $3, null)',
+  })
+  @ApiQuery({
+    name: 'company_name',
+    required: true,
+    description: 'Nombre de la compañía',
+    example: 'PALLAPIZZA',
+  })
+  @ApiQuery({ name: 'year', required: true, description: 'Año (ej: 2024)' })
+  @ApiQuery({
+    name: 'week_number',
+    required: true,
+    description: 'Número de semana (ej: 30 )',
+    example: '30',
+  })
+  async getGastosTotalesPorCategoriaResultadoSemanal(
+    @Query('company_name') companyName: string,
+    @Query('year') year: string,
+    @Query('week_number') weekNumber: string,
+  ) {
+    if (!companyName || !year || !weekNumber) {
+      return {
+        success: false,
+        message:
+          'Faltan parámetros requeridos: company_name, year, month_number',
+      };
+    }
+    const sql =
+      'SELECT * from dwh.get_debit_variation_by_company_and_period($1, $2, $3, null)';
+    return this.syncService.queryExternalKpi(sql, [
+      companyName,
+      year,
+      weekNumber,
+    ]);
+  }
 }
