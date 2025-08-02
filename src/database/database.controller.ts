@@ -1512,7 +1512,7 @@ export class DatabaseController {
       venueName,
       monthNumber,
     ]);
-  } 
+  }
   // vista general: Metrica de RH: Proporcion de gasto sobre ingresos(HR), Coste por Departamento(HR) y Ratio de Personal(HR) de todos los restaurantes
   @Get('vista-general/Metrica-RH-todos-restaurantes')
   @ApiOperation({
@@ -1545,10 +1545,75 @@ export class DatabaseController {
       monthNumber,
     ]);
   }
+  //Vista General:Beneficio Estimado (todos los restaurantes) VISTA GENERAL
+  @Get('vista-general/Beneficio-total')
+  @ApiOperation({
+    summary: 'Vista General: Beneficio Estimado (todos los restaurantes) VISTA GENERAL',
+    description:
+      'Ejecuta: SELECT * from dwh.fn_estimated_profit_by_company_and_period(:p_company_name, :p_year, null, :p_month_number);',
+  })
+  @ApiQuery({ name: 'company_name', required: true })
+  @ApiQuery({ name: 'year', required: true })
+  //@ApiQuery({ name: 'venue_name', required: true })
+  @ApiQuery({ name: 'month_number', required: true })
+  async getVistaGeneralBeneficioTotal(
+    @Query('company_name') companyName: string,
+    @Query('year') year: string,
+    //@Query('venue_name') venueName: string,
+    @Query('month_number') monthNumber: string,
+  ) {
+    if (!companyName || !year || !monthNumber) {
+      return {
+        success: false,
+        message:
+          'Faltan parámetros requeridos: company_name, year, venue_name, month_number',
+      };
+    }
+    const sql =
+      'SELECT * from dwh.fn_estimated_profit_by_company_and_period($1, $2, null, $3)';
+    return this.syncService.queryExternalKpi(sql, [
+      companyName,
+      year,
+      monthNumber,
+    ]);
+  }
+  // VISTA GENERAL Beneficio Estimado (un restaurante) VISTA GENERAL
+  @Get('vista-general/Beneficio-total-un-restaurante')
+  @ApiOperation({
+    summary: 'Vista General: Beneficio Estimado (un restaurante) VISTA GENERAL',
+    description:
+      'Ejecuta: SELECT * from dwh.fn_estimated_profit_by_venue_and_period(:p_company_name, :p_year, :p_venue_name, :p_month_number);',
+  })
+  @ApiQuery({ name: 'company_name', required: true })
+  @ApiQuery({ name: 'venue_name', required: true })
+  @ApiQuery({ name: 'year', required: true })
+  @ApiQuery({ name: 'month_number', required: true })
+  async getVistaGeneralBeneficioTotalPorRestaurante(
+    @Query('company_name') companyName: string,
+    @Query('venue_name') venueName: string,
+    @Query('year') year: string,
+    @Query('month_number') monthNumber: string,
+  ) {
+    if (!companyName || !venueName || !year || !monthNumber) {
+      return {
+        success: false,
+        message:
+          'Faltan parámetros requeridos: company_name, year, venue_name, month_number',
+      };
+    }
+    const sql =
+      'SELECT * from dwh.fn_estimated_profit_by_venue_and_period($1, $2, $3, null, $4)';
+    return this.syncService.queryExternalKpi(sql, [
+      companyName,
+      venueName,
+      year,
+      monthNumber,
+    ]);
+  }
   //RESULTADO SEMANAL: Gastos Totales por Categoría
   @Get('kpi/gastos-totales-por-categoria-resultado-semanal')
   @ApiOperation({
-  summary: 'KPI: Gastos Totales por Categoría RESULTADO SEMANAL',
+    summary: 'KPI: Gastos Totales por Categoría RESULTADO SEMANAL',
     description:
       'Ejecuta: SELECT * from dwh.get_debit_variation_by_company_and_period($1, $2, $3, null)',
   })
@@ -1589,7 +1654,7 @@ export class DatabaseController {
   //RESULTADO SEMANAL: Gastos Totales por Categoría(por restaurante)
   @Get('kpi/gastos-totales-por-categoria-resultado-semanal-por-restaurante')
   @ApiOperation({
-  summary: 'KPI: Gastos Totales por Categoría RESULTADO SEMANAL(por restaurante)',
+    summary: 'KPI: Gastos Totales por Categoría RESULTADO SEMANAL(por restaurante)',
     description:
       'Ejecuta: SELECT * from dwh.get_debit_variation_by_venue_and_period($1, $2, $3, null)',
   })
