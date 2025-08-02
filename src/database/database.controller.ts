@@ -1512,5 +1512,37 @@ export class DatabaseController {
       venueName,
       monthNumber,
     ]);
+  } 
+  // vista general: Metrica de RH: Proporcion de gasto sobre ingresos(HR), Coste por Departamento(HR) y Ratio de Personal(HR) de todos los restaurantes
+  @Get('vista-general/Metrica-RH-todos-restaurantes')
+  @ApiOperation({
+    summary: 'Vista General: Metrica de RH: Proporcion de gasto sobre ingresos(HR), Coste por Departamento(HR) y Ratio de Personal(HR) de todos los restaurantes VISTA GENERAL',
+    description:
+      'Ejecuta: SELECT * from dwh.fn_personnel_expense_ratio2(:p_company_name, :p_year, null, null, :p_month_number);',
+  })
+  @ApiQuery({ name: 'company_name', required: true })
+  @ApiQuery({ name: 'year', required: true })
+  //@ApiQuery({ name: 'venue_name', required: true })
+  @ApiQuery({ name: 'month_number', required: true })
+  async getVistaGeneralProporcionMetricaRH(
+    @Query('company_name') companyName: string,
+    @Query('year') year: string,
+    //@Query('venue_name') venueName: string,
+    @Query('month_number') monthNumber: string,
+  ) {
+    if (!companyName || !year || !monthNumber) {
+      return {
+        success: false,
+        message:
+          'Faltan parámetros requeridos: company_name, year, venue_name, month_number',
+      };
+    }
+    const sql =
+      'SELECT * from dwh.fn_personnel_expense_ratio2($1, $2, null, null, $3)';
+    return this.syncService.queryExternalKpi(sql, [
+      companyName,
+      year,
+      monthNumber,
+    ]);
   }
 }
